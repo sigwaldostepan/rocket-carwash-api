@@ -1,5 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { CustomerPlate } from './customer-plate.entity';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Customer {
@@ -9,12 +8,12 @@ export class Customer {
   @Column({ unique: true })
   code: string;
 
+  @Column()
+  name: string;
+
   @Column({ name: 'phone_number' })
   phoneNumber: string;
 
-  @Column()
-  point: number;
-
-  @OneToMany(() => CustomerPlate, (customerPlate) => customerPlate.customer)
-  customerPlates: CustomerPlate[];
+  @Column({ default: 0, nullable: true })
+  point: number = 0;
 }
