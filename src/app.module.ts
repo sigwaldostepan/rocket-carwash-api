@@ -5,6 +5,7 @@ import { DatabaseModule } from './database/database.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggerInterceptor } from './common/interceptors/logger.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
+import { CustomerModule } from './modules/customer/customer.module';
 import jwtConfig from './modules/auth/config/jwt.config';
 import authConfig from './modules/auth/config/auth.config';
 
@@ -18,6 +19,7 @@ import authConfig from './modules/auth/config/auth.config';
     DatabaseModule,
     UserModule,
     AuthModule,
+    CustomerModule,
   ],
   providers: [
     {
