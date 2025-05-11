@@ -9,7 +9,7 @@ export class TokenInterceptor implements NestInterceptor {
       map((data) => {
         if (data.accessToken && data.refreshToken) {
           res.cookie(process.env.ACCESS_TOKEN_COOKIE_NAME, data.accessToken, {
-            httpOnly: false,
+            httpOnly: true,
             secure: process.env.NODE_ENV === 'development' ? false : true,
             sameSite: 'none',
             maxAge: +process.env.JWT_EXPIRATION * 1000,
@@ -17,7 +17,7 @@ export class TokenInterceptor implements NestInterceptor {
           });
 
           res.cookie(process.env.REFRESH_TOKEN_COOKIE_NAME, data.refreshToken, {
-            httpOnly: false,
+            httpOnly: true,
             secure: process.env.NODE_ENV === 'development' ? false : true,
             sameSite: 'none',
             maxAge: +process.env.REFRESH_TOKEN_EXPIRATION * 1000,
