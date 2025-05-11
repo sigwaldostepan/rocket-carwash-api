@@ -4,7 +4,7 @@ import { LoginDto } from './dtos/login.dto';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt.guard';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh.guard';
-import { User } from 'src/common/decorators';
+import { User } from '../../common/decorators';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { TokenInterceptor } from './interceptors/token.interceptor';
