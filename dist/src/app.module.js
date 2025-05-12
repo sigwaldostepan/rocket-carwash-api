@@ -18,6 +18,7 @@ const core_1 = require("@nestjs/core");
 const logger_interceptor_1 = require("./common/interceptors/logger.interceptor");
 const auth_module_1 = require("./modules/auth/auth.module");
 const customer_module_1 = require("./modules/customer/customer.module");
+const app_controller_1 = require("./app.controller");
 const jwt_config_1 = __importDefault(require("./modules/auth/config/jwt.config"));
 const auth_config_1 = __importDefault(require("./modules/auth/config/auth.config"));
 let AppModule = class AppModule {
@@ -42,6 +43,7 @@ exports.AppModule = AppModule = __decorate([
                 useClass: logger_interceptor_1.LoggerInterceptor,
             },
         ],
+        controllers: [app_controller_1.AppController],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

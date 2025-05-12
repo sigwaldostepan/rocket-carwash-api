@@ -9,17 +9,23 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FindCustomersDto = void 0;
-const class_validator_1 = require("class-validator");
-const class_transformer_1 = require("class-transformer");
-const dto_1 = require("../../../common/dto");
-class FindCustomersDto extends dto_1.PaginationDto {
-}
-exports.FindCustomersDto = FindCustomersDto;
+exports.AppController = void 0;
+const common_1 = require("@nestjs/common");
+let AppController = class AppController {
+    welcome() {
+        return {
+            message: 'Bro mengakses API rocket carwash',
+        };
+    }
+};
+exports.AppController = AppController;
 __decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    (0, class_transformer_1.Transform)(({ value }) => decodeURIComponent(value)),
-    __metadata("design:type", String)
-], FindCustomersDto.prototype, "q", void 0);
-//# sourceMappingURL=find-customer.dto.js.map
+    (0, common_1.Get)(''),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "welcome", null);
+exports.AppController = AppController = __decorate([
+    (0, common_1.Controller)('')
+], AppController);
+//# sourceMappingURL=app.controller.js.map
