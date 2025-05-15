@@ -19,6 +19,7 @@ const logger_interceptor_1 = require("./common/interceptors/logger.interceptor")
 const auth_module_1 = require("./modules/auth/auth.module");
 const customer_module_1 = require("./modules/customer/customer.module");
 const app_controller_1 = require("./app.controller");
+const item_module_1 = require("./modules/item/item.module");
 const jwt_config_1 = __importDefault(require("./modules/auth/config/jwt.config"));
 const auth_config_1 = __importDefault(require("./modules/auth/config/auth.config"));
 let AppModule = class AppModule {
@@ -36,6 +37,7 @@ exports.AppModule = AppModule = __decorate([
             user_module_1.UserModule,
             auth_module_1.AuthModule,
             customer_module_1.CustomerModule,
+            item_module_1.ItemModule,
         ],
         providers: [
             {

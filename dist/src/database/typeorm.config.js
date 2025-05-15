@@ -46,7 +46,7 @@ exports.options = {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-    synchronize: false,
+    synchronize: process.env.NODE_ENV === 'production' ? false : true,
     entities: [(0, path_1.join)(__dirname, '..', 'modules', '**', '*.entity.{ts,js}')],
     migrations: [(0, path_1.join)(__dirname, 'database', 'migrations', '*-migration.ts')],
     migrationsRun: false,
