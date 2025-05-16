@@ -14,7 +14,7 @@ export const options: DataSourceOptions = {
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   synchronize: process.env.NODE_ENV === 'production' ? false : true,
   entities: [join(__dirname, '..', 'modules', '**', '*.entity.{ts,js}')],
-  migrations: [join(__dirname, 'migrations', '*-migration.{ts,js}')],
+  migrations: [join(__dirname, 'migrations', '*.ts')],
   migrationsRun: false,
 };
 
