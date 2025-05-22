@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Customer = void 0;
+const transaction_entity_1 = require("../../transaction/entities/transaction.entity");
 const typeorm_1 = require("typeorm");
 let Customer = class Customer {
     constructor() {
@@ -37,6 +38,12 @@ __decorate([
     (0, typeorm_1.Column)({ default: 0, nullable: true }),
     __metadata("design:type", Number)
 ], Customer.prototype, "point", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => transaction_entity_1.Transaction, (transaction) => transaction.customer, {
+        cascade: true,
+    }),
+    __metadata("design:type", Array)
+], Customer.prototype, "transaction", void 0);
 exports.Customer = Customer = __decorate([
     (0, typeorm_1.Entity)()
 ], Customer);

@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Item = void 0;
+const transaction_detail_entity_1 = require("../../transaction/entities/transaction-detail.entity");
 const typeorm_1 = require("typeorm");
 let Item = class Item {
 };
@@ -26,6 +27,12 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'numeric' }),
     __metadata("design:type", Number)
 ], Item.prototype, "price", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => transaction_detail_entity_1.TransactionDetail, (transaction) => transaction.item, {
+        cascade: true,
+    }),
+    __metadata("design:type", transaction_detail_entity_1.TransactionDetail)
+], Item.prototype, "transactionDetail", void 0);
 exports.Item = Item = __decorate([
     (0, typeorm_1.Entity)()
 ], Item);

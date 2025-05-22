@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CustomerModule } from './modules/customer/customer.module';
 import { AppController } from './app.controller';
 import { ItemModule } from './modules/item/item.module';
+import { TransactionModule } from './modules/transaction/transaction.module';
 import jwtConfig from './modules/auth/config/jwt.config';
 import authConfig from './modules/auth/config/auth.config';
 
@@ -23,6 +24,7 @@ import authConfig from './modules/auth/config/auth.config';
     AuthModule,
     CustomerModule,
     ItemModule,
+    TransactionModule,
   ],
   providers: [
     {

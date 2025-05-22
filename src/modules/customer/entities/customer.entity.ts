@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Transaction } from 'src/modules/transaction/entities/transaction.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Customer {
@@ -16,4 +17,9 @@ export class Customer {
 
   @Column({ default: 0, nullable: true })
   point: number = 0;
+
+  @OneToMany(() => Transaction, (transaction) => transaction.customer, {
+    cascade: true,
+  })
+  transaction: Transaction[];
 }

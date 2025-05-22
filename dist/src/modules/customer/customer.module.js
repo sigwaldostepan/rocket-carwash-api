@@ -20,6 +20,7 @@ exports.CustomerModule = CustomerModule = __decorate([
         imports: [typeorm_1.TypeOrmModule.forFeature([customer_entity_1.Customer])],
         providers: [customer_service_1.CustomerService],
         controllers: [customer_controller_1.CustomerController],
+        exports: [customer_service_1.CustomerService],
     })
 ], CustomerModule);
 //# sourceMappingURL=customer.module.js.map
