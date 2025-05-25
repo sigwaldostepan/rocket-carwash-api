@@ -28,6 +28,10 @@ __decorate([
     __metadata("design:type", Number)
 ], Item.prototype, "price", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], Item.prototype, "isRedeemable", void 0);
+__decorate([
     (0, typeorm_1.OneToMany)(() => transaction_detail_entity_1.TransactionDetail, (transaction) => transaction.item, {
         cascade: true,
     }),

@@ -35,11 +35,12 @@ export class ItemService {
   }
 
   public async createItem(createItemDto: CreateItemDto) {
-    const { name, price } = createItemDto;
+    const { name, price, isRedeemable } = createItemDto;
 
     const item = this.itemRepo.create({
       name,
       price,
+      isRedeemable,
     });
 
     return this.itemRepo.save(item);

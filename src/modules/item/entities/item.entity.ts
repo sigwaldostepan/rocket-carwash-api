@@ -12,6 +12,9 @@ export class Item {
   @Column({ type: 'numeric' })
   price: number;
 
+  @Column({ default: false })
+  isRedeemable: boolean;
+
   @OneToMany(() => TransactionDetail, (transaction) => transaction.item, {
     cascade: true,
   })

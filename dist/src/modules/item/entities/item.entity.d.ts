@@ -3,5 +3,6 @@ export declare class Item {
     id: string;
     name: string;
     price: number;
+    isRedeemable: boolean;
     transactionDetail: TransactionDetail;
 }
