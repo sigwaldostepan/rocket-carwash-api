@@ -37,7 +37,7 @@ __decorate([
     __metadata("design:type", customer_entity_1.Customer)
 ], Transaction.prototype, "customer", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ type: 'decimal', default: 0 }),
     __metadata("design:type", Number)
 ], Transaction.prototype, "transTotal", void 0);
 __decorate([
@@ -48,6 +48,10 @@ __decorate([
     (0, typeorm_1.Column)({ default: false }),
     __metadata("design:type", Boolean)
 ], Transaction.prototype, "isCompliment", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', default: 0 }),
+    __metadata("design:type", Number)
+], Transaction.prototype, "complimentValue", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)({
         type: 'timestamptz',

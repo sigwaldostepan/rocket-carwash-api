@@ -33,9 +33,13 @@ __decorate([
     __metadata("design:type", item_entity_1.Item)
 ], TransactionDetail.prototype, "item", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: false }),
-    __metadata("design:type", Boolean)
-], TransactionDetail.prototype, "isRedeemed", void 0);
+    (0, typeorm_1.Column)({ default: 0 }),
+    __metadata("design:type", Number)
+], TransactionDetail.prototype, "quantity", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: 0 }),
+    __metadata("design:type", Number)
+], TransactionDetail.prototype, "redeemedQuantity", void 0);
 exports.TransactionDetail = TransactionDetail = __decorate([
     (0, typeorm_1.Entity)()
 ], TransactionDetail);

@@ -17,6 +17,7 @@ export declare class TransactionService {
         total: number;
     }>;
     findTransactionById(id: string): Promise<Transaction>;
+    private calculateTransTotal;
     createTransaction(createTransactionDto: CreateTransactionDto): Promise<{
         details: TransactionDetail[];
         id: string;
@@ -25,9 +26,9 @@ export declare class TransactionService {
         transTotal: number;
         paymentMethod: string;
         isCompliment?: boolean;
+        complimentValue: number;
         createdAt: Date;
     }>;
     deleteTransaction(id: string): Promise<import("typeorm").DeleteResult>;
     private generateInvoiceNo;
-    private calculateTransTotal;
 }

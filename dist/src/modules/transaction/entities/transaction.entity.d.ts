@@ -8,5 +8,6 @@ export declare class Transaction {
     transTotal: number;
     paymentMethod: string;
     isCompliment?: boolean;
+    complimentValue: number;
     createdAt: Date;
 }

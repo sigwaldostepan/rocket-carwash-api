@@ -20,7 +20,7 @@ export class Transaction {
   })
   customer: Customer;
 
-  @Column()
+  @Column({ type: 'decimal', default: 0 })
   transTotal: number;
 
   @Column({ nullable: true })
@@ -28,6 +28,9 @@ export class Transaction {
 
   @Column({ default: false })
   isCompliment?: boolean;
+
+  @Column({ type: 'decimal', default: 0 })
+  complimentValue: number;
 
   @CreateDateColumn({
     type: 'timestamptz',

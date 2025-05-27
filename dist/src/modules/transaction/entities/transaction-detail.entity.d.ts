@@ -4,5 +4,6 @@ export declare class TransactionDetail {
     id: string;
     transaction: Transaction;
     item: Item;
-    isRedeemed: boolean;
+    quantity: number;
+    redeemedQuantity: number;
 }

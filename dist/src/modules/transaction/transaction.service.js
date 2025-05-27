@@ -55,47 +55,87 @@ let TransactionService = class TransactionService {
         }
         return transaction;
     }
+    calculateTransTotal(detail, isCompliment, complimentAmount) {
+        const transTotal = detail.reduce((total, detail) => {
+            const { item, quantity, redeemedQuantity } = detail;
+            if (redeemedQuantity > quantity) {
+                throw new common_1.UnprocessableEntityException('Jumlah diredeem gak lebih banyak dari jumlah itemnya yg diorder dong');
+            }
+            let subtotal = 0;
+            if (redeemedQuantity > 0) {
+                const unredeemedValue = quantity * item.price - redeemedQuantity * item.price;
+                subtotal = Number(total) + unredeemedValue;
+                return subtotal;
+            }
+            subtotal = Number(total) + item.price * quantity;
+            if (isCompliment) {
+                complimentAmount > subtotal ? (subtotal -= subtotal) : (subtotal -= complimentAmount);
+            }
+            return subtotal;
+        }, 0);
+        return transTotal;
+    }
     async createTransaction(createTransactionDto) {
-        const customer = await this.custService.findCustomerById(createTransactionDto.customerId);
+        let customer = null;
+        if (createTransactionDto.customerId) {
+            customer = await this.custService.findCustomerById(createTransactionDto.customerId);
+        }
+        const dtoItemsId = createTransactionDto.items.map((dtoItem) => dtoItem.itemId);
         const items = await this.itemRepo.find({
             where: {
-                id: (0, typeorm_2.In)(createTransactionDto.items),
+                id: (0, typeorm_2.In)(dtoItemsId),
             },
         });
         const foundItemIds = items.map((item) => item.id);
-        const notFoundItems = createTransactionDto.items.filter((id) => !foundItemIds.includes(id));
+        const notFoundItems = createTransactionDto.items.filter((dtoItem) => !foundItemIds.includes(dtoItem.itemId));
         if (notFoundItems.length > 0) {
             throw new common_1.NotFoundException(`Item dgn id ${notFoundItems.join(', ')} gak ketemu`);
         }
-        const isRedeemPoints = createTransactionDto.redeemedItems.length > 0;
-        const totalRedeemedItems = createTransactionDto.redeemedItems.length;
-        if (isRedeemPoints) {
+        const totalRedeemedItems = createTransactionDto.items.reduce((total, item) => total + (item.redeemedQuantity ?? 0), 0);
+        const isRedeemPoints = totalRedeemedItems > 0;
+        if (!customer && isRedeemPoints) {
+            throw new common_1.UnprocessableEntityException('Transaksi tanpa customer, tidak bisa redeem point');
+        }
+        if (isRedeemPoints && customer) {
             const requiredPoint = transaction_constant_1.REDEEM_POINT_COST * totalRedeemedItems;
             if (customer.point < requiredPoint) {
                 throw new common_1.BadRequestException('Point customer gak cukup');
             }
             customer.point -= requiredPoint;
         }
-        const canEarnPoint = !isRedeemPoints;
-        if (canEarnPoint) {
+        const additionalPointTransation = !isRedeemPoints;
+        if (additionalPointTransation && customer) {
             customer.point += transaction_constant_1.POINT_REWARD;
         }
-        const transactionDetail = items.map((item) => {
-            const isRedeemed = isRedeemPoints ? createTransactionDto.redeemedItems.includes(item.id) : false;
-            return this.transDetailRepo.create({
-                item,
-                isRedeemed: isRedeemed,
+        const itemMap = new Map(items.map((item) => [item.id, item]));
+        const transactionDetail = createTransactionDto.items.map((dtoItem) => {
+            const isRedeemed = dtoItem.redeemedQuantity > 0;
+            const matchedItem = itemMap.get(dtoItem.itemId);
+            if (!matchedItem) {
+                throw new common_1.NotFoundException(`Item ${matchedItem.name} gak ketemu`);
+            }
+            if (!matchedItem.isRedeemable && isRedeemed) {
+                throw new common_1.UnprocessableEntityException(`Item ${matchedItem.name} gak bisa diredeem`);
+            }
+            const entity = this.transDetailRepo.create({
+                item: matchedItem,
+                quantity: dtoItem.quantity,
+                redeemedQuantity: dtoItem.redeemedQuantity ?? 0,
             });
+            return entity;
         });
         const invoiceNo = await this.generateInvoiceNo();
-        await this.custRepo.update(customer.id, { point: customer.point });
+        if (customer) {
+            await this.custRepo.update(customer.id, { point: customer.point });
+        }
         const transaction = this.transRepo.create({
             invoiceNo,
             customer,
-            transTotal: this.calculateTransTotal(transactionDetail, createTransactionDto.isCompliment),
+            transTotal: this.calculateTransTotal(transactionDetail, createTransactionDto.isCompliment, createTransactionDto.complimentAmount),
             isCompliment: createTransactionDto.isCompliment,
             paymentMethod: createTransactionDto.paymentMethod,
             details: transactionDetail,
+            complimentValue: createTransactionDto.complimentAmount ?? 0,
         });
         await this.transRepo.save(transaction);
         return {
@@ -122,15 +162,6 @@ let TransactionService = class TransactionService {
         const formattedDate = `${year}${month}${day}`;
         const invoiceNo = `RO-${formattedDate}-${String(countToday + 1).padStart(4, '0')}`;
         return invoiceNo;
-    }
-    calculateTransTotal(detail, isCompliment) {
-        if (isCompliment) {
-            return 0;
-        }
-        const transTotal = detail.reduce((total, detail) => {
-            return Number(total) + (detail.isRedeemed ? 0 : Number(detail.item.price));
-        }, 0);
-        return transTotal;
     }
 };
 exports.TransactionService = TransactionService;

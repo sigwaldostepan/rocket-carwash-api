@@ -1,8 +1,12 @@
+export declare class TransactionItemDto {
+    itemId: string;
+    quantity: number;
+    redeemedQuantity?: number;
+}
 export declare class CreateTransactionDto {
     customerId: string;
-    items: string[];
+    items: TransactionItemDto[];
     paymentMethod: string;
-    isRedeemPoints?: boolean;
-    redeemedItems: string[];
     isCompliment?: boolean;
+    complimentAmount: number;
 }

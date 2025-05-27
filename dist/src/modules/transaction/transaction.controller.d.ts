@@ -22,6 +22,7 @@ export declare class TransactionController {
         transTotal: number;
         paymentMethod: string;
         isCompliment?: boolean;
+        complimentValue: number;
         createdAt: Date;
     }>;
     remove(id: string): Promise<import("typeorm").DeleteResult>;

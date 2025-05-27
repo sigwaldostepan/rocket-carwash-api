@@ -17,6 +17,9 @@ export class TransactionDetail {
   })
   item: Item;
 
-  @Column({ default: false })
-  isRedeemed: boolean;
+  @Column({ default: 0 })
+  quantity: number;
+
+  @Column({ default: 0 })
+  redeemedQuantity: number;
 }
