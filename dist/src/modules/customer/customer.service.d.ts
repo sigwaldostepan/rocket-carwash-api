@@ -6,7 +6,7 @@ import { UpdateCustomerDto } from './dtos/update-customer.dto';
 export declare class CustomerService {
     private readonly customerRepo;
     constructor(customerRepo: Repository<Customer>);
-    findCustomers({ limit, offset, q }: FindCustomersDto): Promise<{
+    findCustomers({ limit, offset, q, by }: FindCustomersDto): Promise<{
         customers: Customer[];
         total: number;
     }>;

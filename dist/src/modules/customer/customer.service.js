@@ -21,10 +21,12 @@ let CustomerService = class CustomerService {
     constructor(customerRepo) {
         this.customerRepo = customerRepo;
     }
-    async findCustomers({ limit, offset, q }) {
+    async findCustomers({ limit, offset, q, by }) {
         const query = this.customerRepo.createQueryBuilder('customer');
+        const whitelistSearchBy = ['phoneNumber', 'name'];
+        const searchBy = whitelistSearchBy.includes(by) ? by : 'phoneNumber';
         if (q) {
-            query.where('customer.name ILIKE :keyword', { keyword: `%${q}%` });
+            query.where(`customer.${searchBy} ILIKE :keyword`, { keyword: `%${q}%` });
         }
         const [customers, total] = await query.orderBy('customer.name', 'ASC').take(limit).skip(offset).getManyAndCount();
         return {

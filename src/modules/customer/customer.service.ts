@@ -13,11 +13,14 @@ export class CustomerService {
     private readonly customerRepo: Repository<Customer>,
   ) {}
 
-  public async findCustomers({ limit, offset, q }: FindCustomersDto) {
+  public async findCustomers({ limit, offset, q, by }: FindCustomersDto) {
     const query = this.customerRepo.createQueryBuilder('customer');
 
+    const whitelistSearchBy = ['phoneNumber', 'name'];
+    const searchBy = whitelistSearchBy.includes(by) ? by : 'phoneNumber';
+
     if (q) {
-      query.where('customer.name ILIKE :keyword', { keyword: `%${q}%` });
+      query.where(`customer.${searchBy} ILIKE :keyword`, { keyword: `%${q}%` });
     }
 
     const [customers, total] = await query.orderBy('customer.name', 'ASC').take(limit).skip(offset).getManyAndCount();
