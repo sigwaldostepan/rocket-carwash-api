@@ -9,6 +9,7 @@ export class TransactionDetail {
 
   @ManyToOne(() => Transaction, (transaction) => transaction.details, {
     onDelete: 'CASCADE',
+    orphanedRowAction: 'delete',
   })
   transaction: Transaction;
 

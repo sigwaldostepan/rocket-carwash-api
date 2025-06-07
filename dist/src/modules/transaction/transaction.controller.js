@@ -16,15 +16,15 @@ exports.TransactionController = void 0;
 const common_1 = require("@nestjs/common");
 const transaction_service_1 = require("./transaction.service");
 const create_transaction_dto_1 = require("./dto/create-transaction.dto");
-const dto_1 = require("../../common/dto");
 const helpers_1 = require("../../common/helpers");
+const find_transaction_dto_1 = require("./dto/find-transaction.dto");
 let TransactionController = class TransactionController {
     constructor(transactionService) {
         this.transactionService = transactionService;
     }
-    async findTransactions(paginationDto) {
-        const { transactions, total } = await this.transactionService.findTransactions(paginationDto);
-        return (0, helpers_1.paginateResponse)(transactions, paginationDto.page, paginationDto.limit, total);
+    async findTransactions(findTransactionDto) {
+        const { transactions, total } = await this.transactionService.findTransactions(findTransactionDto);
+        return (0, helpers_1.paginateResponse)(transactions, findTransactionDto.page, findTransactionDto.limit, total);
     }
     findOne(id) {
         return this.transactionService.findTransactionById(id);
@@ -41,7 +41,7 @@ __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [dto_1.PaginationDto]),
+    __metadata("design:paramtypes", [find_transaction_dto_1.FindTransactionDto]),
     __metadata("design:returntype", Promise)
 ], TransactionController.prototype, "findTransactions", null);
 __decorate([

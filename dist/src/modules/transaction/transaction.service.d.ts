@@ -3,8 +3,8 @@ import { Transaction, TransactionDetail } from './entities';
 import { Repository } from 'typeorm';
 import { Item } from '../item/entities/item.entity';
 import { CustomerService } from '../customer/customer.service';
-import { PaginationDto } from 'src/common/dto';
 import { Customer } from '../customer/entities/customer.entity';
+import { FindTransactionDto } from './dto/find-transaction.dto';
 export declare class TransactionService {
     private readonly custService;
     private readonly transRepo;
@@ -12,7 +12,7 @@ export declare class TransactionService {
     private readonly itemRepo;
     private readonly custRepo;
     constructor(custService: CustomerService, transRepo: Repository<Transaction>, transDetailRepo: Repository<TransactionDetail>, itemRepo: Repository<Item>, custRepo: Repository<Customer>);
-    findTransactions(paginationDto: PaginationDto): Promise<{
+    findTransactions(findTransactionDto: FindTransactionDto): Promise<{
         transactions: Transaction[];
         total: number;
     }>;
@@ -29,6 +29,6 @@ export declare class TransactionService {
         complimentValue: number;
         createdAt: Date;
     }>;
-    deleteTransaction(id: string): Promise<import("typeorm").DeleteResult>;
+    deleteTransaction(id: string): Promise<Transaction>;
     private generateInvoiceNo;
 }

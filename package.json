@@ -22,7 +22,7 @@
     "migration:create": "npx ts-node -P ./tsconfig.json -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:create",
     "migration:run": "npx ts-node -P ./tsconfig.json -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d ./src/database/typeorm.config.ts",
     "migration:revert": "npx ts-node -P ./tsconfig.json -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:revert -d ./src/database/typeorm.config.ts",
-    "seed": "dotenv -e .env.development -- npx ts-node -r dotenv/config src/database/seeders/main.seeder.ts",
+    "seed": "npx ts-node -r tsconfig-paths/register -r dotenv/config src/database/seeders/main.seeder.ts",
     "seed:prod": "ts-node src/database/seeders/main.seeder.ts",
     "vercel-build": "nest build"
   },
@@ -40,6 +40,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cookie-parser": "^1.4.7",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.5.0",
     "dotenv-cli": "^8.0.0",
     "express": "^5.1.0",

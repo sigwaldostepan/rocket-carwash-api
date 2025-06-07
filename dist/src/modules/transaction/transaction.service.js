@@ -21,6 +21,7 @@ const item_entity_1 = require("../item/entities/item.entity");
 const customer_service_1 = require("../customer/customer.service");
 const customer_entity_1 = require("../customer/entities/customer.entity");
 const transaction_constant_1 = require("./transaction.constant");
+const date_fns_1 = require("date-fns");
 let TransactionService = class TransactionService {
     constructor(custService, transRepo, transDetailRepo, itemRepo, custRepo) {
         this.custService = custService;
@@ -29,15 +30,43 @@ let TransactionService = class TransactionService {
         this.itemRepo = itemRepo;
         this.custRepo = custRepo;
     }
-    async findTransactions(paginationDto) {
-        const [transactions, total] = await this.transRepo
+    async findTransactions(findTransactionDto) {
+        const { limit, offset, dateFrom, range } = findTransactionDto;
+        const query = this.transRepo
             .createQueryBuilder('transaction')
-            .leftJoinAndSelect('transaction.details', 'details')
-            .leftJoinAndSelect('details.item', 'item')
             .orderBy('transaction.invoiceNo', 'ASC')
-            .take(paginationDto.limit)
-            .skip(paginationDto.offset)
-            .getManyAndCount();
+            .leftJoinAndSelect('transaction.customer', 'customer')
+            .take(limit)
+            .skip(offset);
+        if (dateFrom) {
+            let from = null;
+            let to = null;
+            if (range === 'daily' || !range) {
+                from = (0, date_fns_1.startOfDay)(dateFrom);
+                to = (0, date_fns_1.endOfDay)(dateFrom);
+            }
+            else if (range === 'weekly') {
+                from = (0, date_fns_1.startOfWeek)(dateFrom);
+                to = (0, date_fns_1.endOfWeek)(dateFrom);
+            }
+            else if (range === 'monthly') {
+                from = (0, date_fns_1.startOfMonth)(dateFrom);
+                to = (0, date_fns_1.endOfMonth)(dateFrom);
+            }
+            else if (range === 'yearly') {
+                from = (0, date_fns_1.startOfYear)(dateFrom);
+                to = (0, date_fns_1.endOfYear)(dateFrom);
+            }
+            else if (range === 'toToday') {
+                from = (0, date_fns_1.startOfDay)(dateFrom);
+                to = (0, date_fns_1.endOfDay)(new Date());
+            }
+            else {
+                throw new common_1.UnprocessableEntityException('Tipe range gak valid');
+            }
+            query.where('transaction.createdAt BETWEEN :from AND :to', { from, to });
+        }
+        const [transactions, total] = await query.getManyAndCount();
         return {
             transactions,
             total,
@@ -145,7 +174,7 @@ let TransactionService = class TransactionService {
     }
     async deleteTransaction(id) {
         const transaction = await this.findTransactionById(id);
-        return await this.transRepo.delete(transaction.id);
+        return await this.transRepo.remove(transaction);
     }
     async generateInvoiceNo() {
         const now = new Date();

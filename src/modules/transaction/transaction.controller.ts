@@ -1,18 +1,18 @@
 import { Controller, Get, Post, Body, Param, Delete, Query } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
-import { PaginationDto } from 'src/common/dto';
 import { paginateResponse } from 'src/common/helpers';
+import { FindTransactionDto } from './dto/find-transaction.dto';
 
 @Controller('transactions')
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
   @Get()
-  public async findTransactions(@Query() paginationDto: PaginationDto) {
-    const { transactions, total } = await this.transactionService.findTransactions(paginationDto);
+  public async findTransactions(@Query() findTransactionDto: FindTransactionDto) {
+    const { transactions, total } = await this.transactionService.findTransactions(findTransactionDto);
 
-    return paginateResponse(transactions, paginationDto.page, paginationDto.limit, total);
+    return paginateResponse(transactions, findTransactionDto.page, findTransactionDto.limit, total);
   }
 
   @Get(':id')
