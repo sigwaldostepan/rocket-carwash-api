@@ -5,9 +5,19 @@ import { Transaction, TransactionDetail } from './entities';
 import { Between, In, Repository } from 'typeorm';
 import { Item } from '../item/entities/item.entity';
 import { CustomerService } from '../customer/customer.service';
-import { PaginationDto } from 'src/common/dto';
 import { Customer } from '../customer/entities/customer.entity';
 import { POINT_REWARD, REDEEM_POINT_COST } from './transaction.constant';
+import { FindTransactionDto } from './dto/find-transaction.dto';
+import {
+  endOfDay,
+  endOfMonth,
+  endOfWeek,
+  endOfYear,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+  startOfYear,
+} from 'date-fns';
 
 @Injectable()
 export class TransactionService {
@@ -23,15 +33,43 @@ export class TransactionService {
     private readonly custRepo: Repository<Customer>,
   ) {}
 
-  public async findTransactions(paginationDto: PaginationDto) {
-    const [transactions, total] = await this.transRepo
+  public async findTransactions(findTransactionDto: FindTransactionDto) {
+    const { limit, offset, dateFrom, range } = findTransactionDto;
+
+    const query = this.transRepo
       .createQueryBuilder('transaction')
-      .leftJoinAndSelect('transaction.details', 'details')
-      .leftJoinAndSelect('details.item', 'item')
       .orderBy('transaction.invoiceNo', 'ASC')
-      .take(paginationDto.limit)
-      .skip(paginationDto.offset)
-      .getManyAndCount();
+      .leftJoinAndSelect('transaction.customer', 'customer')
+      .take(limit)
+      .skip(offset);
+
+    if (dateFrom) {
+      let from = null;
+      let to = null;
+
+      if (range === 'daily' || !range) {
+        from = startOfDay(dateFrom);
+        to = endOfDay(dateFrom);
+      } else if (range === 'weekly') {
+        from = startOfWeek(dateFrom);
+        to = endOfWeek(dateFrom);
+      } else if (range === 'monthly') {
+        from = startOfMonth(dateFrom);
+        to = endOfMonth(dateFrom);
+      } else if (range === 'yearly') {
+        from = startOfYear(dateFrom);
+        to = endOfYear(dateFrom);
+      } else if (range === 'toToday') {
+        from = startOfDay(dateFrom);
+        to = endOfDay(new Date());
+      } else {
+        throw new UnprocessableEntityException('Tipe range gak valid');
+      }
+
+      query.where('transaction.createdAt BETWEEN :from AND :to', { from, to });
+    }
+
+    const [transactions, total] = await query.getManyAndCount();
 
     return {
       transactions,
@@ -180,7 +218,7 @@ export class TransactionService {
   public async deleteTransaction(id: string) {
     const transaction = await this.findTransactionById(id);
 
-    return await this.transRepo.delete(transaction.id);
+    return await this.transRepo.remove(transaction);
   }
 
   private async generateInvoiceNo() {

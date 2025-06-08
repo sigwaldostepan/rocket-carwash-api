@@ -1,10 +1,10 @@
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
-import { PaginationDto } from 'src/common/dto';
+import { FindTransactionDto } from './dto/find-transaction.dto';
 export declare class TransactionController {
     private readonly transactionService;
     constructor(transactionService: TransactionService);
-    findTransactions(paginationDto: PaginationDto): Promise<{
+    findTransactions(findTransactionDto: FindTransactionDto): Promise<{
         data: import("./entities").Transaction[];
         meta: {
             currentPage: number;
@@ -25,5 +25,5 @@ export declare class TransactionController {
         complimentValue: number;
         createdAt: Date;
     }>;
-    remove(id: string): Promise<import("typeorm").DeleteResult>;
+    remove(id: string): Promise<import("./entities").Transaction>;
 }

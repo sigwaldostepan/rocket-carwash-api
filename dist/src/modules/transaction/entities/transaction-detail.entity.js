@@ -23,6 +23,7 @@ __decorate([
 __decorate([
     (0, typeorm_1.ManyToOne)(() => transaction_entity_1.Transaction, (transaction) => transaction.details, {
         onDelete: 'CASCADE',
+        orphanedRowAction: 'delete',
     }),
     __metadata("design:type", transaction_entity_1.Transaction)
 ], TransactionDetail.prototype, "transaction", void 0);
