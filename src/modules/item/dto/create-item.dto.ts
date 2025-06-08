@@ -11,6 +11,10 @@ export class CreateItemDto {
   @IsOptional()
   isRedeemable?: boolean;
 
+  @IsBoolean()
+  @IsOptional()
+  isGetPoint?: boolean;
+
   @Transform(({ value }) => parseInt(value))
   @IsNumber()
   @Min(0, { message: 'Harga item gak boleh negatif' })

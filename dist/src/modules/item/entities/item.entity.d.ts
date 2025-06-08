@@ -4,5 +4,6 @@ export declare class Item {
     name: string;
     price: number;
     isRedeemable: boolean;
+    isGetPoint: boolean;
     transactionDetail: TransactionDetail;
 }

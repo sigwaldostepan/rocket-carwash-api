@@ -37,11 +37,12 @@ let ItemService = class ItemService {
         return item;
     }
     async createItem(createItemDto) {
-        const { name, price, isRedeemable } = createItemDto;
+        const { name, price, isRedeemable, isGetPoint } = createItemDto;
         const item = this.itemRepo.create({
             name,
             price,
             isRedeemable,
+            isGetPoint,
         });
         return this.itemRepo.save(item);
     }
