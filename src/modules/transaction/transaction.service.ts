@@ -161,23 +161,29 @@ export class TransactionService {
       customer.point -= requiredPoint;
     }
 
-    const additionalPointTransation = !isRedeemPoints || items.some((item) => !!item.isGetPoint);
+    const addPointTransaction = items.some((item) => !!item.isGetPoint);
+    console.log(addPointTransaction);
 
     const itemMap = new Map(items.map((item) => [item.id, item]));
-
-    if (additionalPointTransation && customer) {
-      const totalPointsToAdd = dtoItemsId.reduce((total, itemId) => {
-        const item = itemMap.get(itemId);
+    if (addPointTransaction && customer) {
+      const pointsToAdd = createTransactionDto.items.reduce((total, dtoItem) => {
+        const item = itemMap.get(dtoItem.itemId);
 
         if (item.isGetPoint) {
-          return total + POINT_REWARD;
+          const notRedeemedQuantity = dtoItem.quantity - (dtoItem.redeemedQuantity ?? 0);
+
+          return (total += POINT_REWARD * notRedeemedQuantity);
         }
 
         return total;
       }, 0);
 
-      customer.point += totalPointsToAdd;
+      console.log({ pointsToAdd });
+
+      customer.point += pointsToAdd;
     }
+
+    console.log(`point : ${customer.point}`);
 
     const transactionDetail: TransactionDetail[] = createTransactionDto.items.map((dtoItem) => {
       const isRedeemed = dtoItem.redeemedQuantity > 0;
