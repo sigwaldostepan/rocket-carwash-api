@@ -15,6 +15,9 @@ export class Item {
   @Column({ default: false })
   isRedeemable: boolean;
 
+  @Column({ default: false })
+  isGetPoint: boolean;
+
   @OneToMany(() => TransactionDetail, (transaction) => transaction.item, {
     cascade: true,
   })
