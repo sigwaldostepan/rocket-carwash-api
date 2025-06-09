@@ -16,8 +16,12 @@ export declare class TransactionService {
         transactions: Transaction[];
         total: number;
     }>;
+    getTransactionSummary(findTransactionDto: FindTransactionDto): Promise<{
+        transactionCount: number;
+        transactionTotalAmount: number;
+        paymentMethodSummary: any[];
+    }>;
     findTransactionById(id: string): Promise<Transaction>;
-    private calculateTransTotal;
     createTransaction(createTransactionDto: CreateTransactionDto): Promise<{
         details: TransactionDetail[];
         id: string;
@@ -30,5 +34,10 @@ export declare class TransactionService {
         createdAt: Date;
     }>;
     deleteTransaction(id: string): Promise<Transaction>;
+    private assignDateFilter;
+    private getTransactionCount;
+    private getTransactionTotalAmount;
+    private getPaymentMethodSummary;
+    private calculateTransTotal;
     private generateInvoiceNo;
 }

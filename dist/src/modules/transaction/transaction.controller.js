@@ -26,6 +26,9 @@ let TransactionController = class TransactionController {
         const { transactions, total } = await this.transactionService.findTransactions(findTransactionDto);
         return (0, helpers_1.paginateResponse)(transactions, findTransactionDto.page, findTransactionDto.limit, total);
     }
+    async getTransactionSummary(findTransactionDto) {
+        return await this.transactionService.getTransactionSummary(findTransactionDto);
+    }
     findOne(id) {
         return this.transactionService.findTransactionById(id);
     }
@@ -44,6 +47,13 @@ __decorate([
     __metadata("design:paramtypes", [find_transaction_dto_1.FindTransactionDto]),
     __metadata("design:returntype", Promise)
 ], TransactionController.prototype, "findTransactions", null);
+__decorate([
+    (0, common_1.Get)('/summary'),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [find_transaction_dto_1.FindTransactionDto]),
+    __metadata("design:returntype", Promise)
+], TransactionController.prototype, "getTransactionSummary", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),

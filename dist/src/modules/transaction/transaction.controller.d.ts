@@ -13,6 +13,11 @@ export declare class TransactionController {
             totalPages: number;
         };
     }>;
+    getTransactionSummary(findTransactionDto: FindTransactionDto): Promise<{
+        transactionCount: number;
+        transactionTotalAmount: number;
+        paymentMethodSummary: any[];
+    }>;
     findOne(id: string): Promise<import("./entities").Transaction>;
     create(createTransactionDto: CreateTransactionDto): Promise<{
         details: import("./entities").TransactionDetail[];

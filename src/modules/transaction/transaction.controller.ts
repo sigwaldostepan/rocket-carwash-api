@@ -15,6 +15,11 @@ export class TransactionController {
     return paginateResponse(transactions, findTransactionDto.page, findTransactionDto.limit, total);
   }
 
+  @Get('/summary')
+  public async getTransactionSummary(@Query() findTransactionDto: FindTransactionDto) {
+    return await this.transactionService.getTransactionSummary(findTransactionDto);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.transactionService.findTransactionById(id);

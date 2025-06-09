@@ -38,38 +38,27 @@ let TransactionService = class TransactionService {
             .leftJoinAndSelect('transaction.customer', 'customer')
             .take(limit)
             .skip(offset);
-        if (dateFrom) {
-            let from = null;
-            let to = null;
-            if (range === 'daily' || !range) {
-                from = (0, date_fns_1.startOfDay)(dateFrom);
-                to = (0, date_fns_1.endOfDay)(dateFrom);
-            }
-            else if (range === 'weekly') {
-                from = (0, date_fns_1.startOfWeek)(dateFrom);
-                to = (0, date_fns_1.endOfWeek)(dateFrom);
-            }
-            else if (range === 'monthly') {
-                from = (0, date_fns_1.startOfMonth)(dateFrom);
-                to = (0, date_fns_1.endOfMonth)(dateFrom);
-            }
-            else if (range === 'yearly') {
-                from = (0, date_fns_1.startOfYear)(dateFrom);
-                to = (0, date_fns_1.endOfYear)(dateFrom);
-            }
-            else if (range === 'toToday') {
-                from = (0, date_fns_1.startOfDay)(dateFrom);
-                to = (0, date_fns_1.endOfDay)(new Date());
-            }
-            else {
-                throw new common_1.UnprocessableEntityException('Tipe range gak valid');
-            }
-            query.where('transaction.createdAt BETWEEN :from AND :to', { from, to });
-        }
+        this.assignDateFilter(dateFrom, range, query);
         const [transactions, total] = await query.getManyAndCount();
         return {
             transactions,
             total,
+        };
+    }
+    async getTransactionSummary(findTransactionDto) {
+        const [transactionCount, transactionTotalAmount, paymentMethodSummary] = await Promise.all([
+            this.getTransactionCount(findTransactionDto),
+            this.getTransactionTotalAmount(findTransactionDto),
+            this.getPaymentMethodSummary(findTransactionDto),
+        ]);
+        const updatedPaymentMethodSummary = paymentMethodSummary.map((summary) => ({
+            ...summary,
+            percentage: transactionTotalAmount > 0 ? ((+summary.totalAmount / transactionTotalAmount) * 100).toFixed(2) : 0,
+        }));
+        return {
+            transactionCount,
+            transactionTotalAmount,
+            paymentMethodSummary: updatedPaymentMethodSummary,
         };
     }
     async findTransactionById(id) {
@@ -83,26 +72,6 @@ let TransactionService = class TransactionService {
             throw new common_1.NotFoundException('Transaksi gak ketemu');
         }
         return transaction;
-    }
-    calculateTransTotal(detail, isCompliment, complimentAmount) {
-        const transTotal = detail.reduce((total, detail) => {
-            const { item, quantity, redeemedQuantity } = detail;
-            if (redeemedQuantity > quantity) {
-                throw new common_1.UnprocessableEntityException('Jumlah diredeem gak lebih banyak dari jumlah itemnya yg diorder dong');
-            }
-            let subtotal = 0;
-            if (redeemedQuantity > 0) {
-                const unredeemedValue = quantity * item.price - redeemedQuantity * item.price;
-                subtotal = Number(total) + unredeemedValue;
-                return subtotal;
-            }
-            subtotal = Number(total) + item.price * quantity;
-            if (isCompliment) {
-                complimentAmount > subtotal ? (subtotal -= subtotal) : (subtotal -= complimentAmount);
-            }
-            return subtotal;
-        }, 0);
-        return transTotal;
     }
     async createTransaction(createTransactionDto) {
         let customer = null;
@@ -133,7 +102,6 @@ let TransactionService = class TransactionService {
             customer.point -= requiredPoint;
         }
         const addPointTransaction = items.some((item) => !!item.isGetPoint);
-        console.log(addPointTransaction);
         const itemMap = new Map(items.map((item) => [item.id, item]));
         if (addPointTransaction && customer) {
             const pointsToAdd = createTransactionDto.items.reduce((total, dtoItem) => {
@@ -144,10 +112,8 @@ let TransactionService = class TransactionService {
                 }
                 return total;
             }, 0);
-            console.log({ pointsToAdd });
             customer.point += pointsToAdd;
         }
-        console.log(`point : ${customer.point}`);
         const transactionDetail = createTransactionDto.items.map((dtoItem) => {
             const isRedeemed = dtoItem.redeemedQuantity > 0;
             const matchedItem = itemMap.get(dtoItem.itemId);
@@ -186,6 +152,85 @@ let TransactionService = class TransactionService {
     async deleteTransaction(id) {
         const transaction = await this.findTransactionById(id);
         return await this.transRepo.remove(transaction);
+    }
+    assignDateFilter(dateFrom, range, query) {
+        if (!dateFrom) {
+            return;
+        }
+        let from = null;
+        let to = null;
+        if (range === 'daily' || !range) {
+            from = (0, date_fns_1.startOfDay)(dateFrom);
+            to = (0, date_fns_1.endOfDay)(dateFrom);
+        }
+        else if (range === 'weekly') {
+            from = (0, date_fns_1.startOfWeek)(dateFrom);
+            to = (0, date_fns_1.endOfWeek)(dateFrom);
+        }
+        else if (range === 'monthly') {
+            from = (0, date_fns_1.startOfMonth)(dateFrom);
+            to = (0, date_fns_1.endOfMonth)(dateFrom);
+        }
+        else if (range === 'yearly') {
+            from = (0, date_fns_1.startOfYear)(dateFrom);
+            to = (0, date_fns_1.endOfYear)(dateFrom);
+        }
+        else if (range === 'toToday') {
+            from = (0, date_fns_1.startOfDay)(dateFrom);
+            to = (0, date_fns_1.endOfDay)(new Date());
+        }
+        else {
+            throw new common_1.UnprocessableEntityException('Tipe range gak valid');
+        }
+        query.where('transaction.createdAt BETWEEN :from AND :to', { from, to });
+    }
+    async getTransactionCount(findTransactionDto) {
+        const { dateFrom, range } = findTransactionDto;
+        const query = this.transRepo.createQueryBuilder('transaction').select('COUNT(*)', 'transactionCount');
+        this.assignDateFilter(dateFrom, range, query);
+        const { transactionCount } = await query.getRawOne();
+        return +transactionCount;
+    }
+    async getTransactionTotalAmount(findTransactionDto) {
+        const { dateFrom, range } = findTransactionDto;
+        const query = this.transRepo
+            .createQueryBuilder('transaction')
+            .select('SUM(transaction.transTotal)', 'sumTransTotal');
+        this.assignDateFilter(dateFrom, range, query);
+        const { sumTransTotal } = await query.getRawOne();
+        return +sumTransTotal;
+    }
+    async getPaymentMethodSummary(findTransactionDto) {
+        const { dateFrom, range } = findTransactionDto;
+        const query = this.transRepo
+            .createQueryBuilder('transaction')
+            .select('transaction.paymentMethod', 'paymentMethod')
+            .addSelect('COUNT(transaction.id)', 'count')
+            .addSelect('SUM(transaction.transTotal)', 'totalAmount')
+            .addGroupBy('transaction.paymentMethod');
+        this.assignDateFilter(dateFrom, range, query);
+        const result = await query.getRawMany();
+        return result;
+    }
+    calculateTransTotal(detail, isCompliment, complimentAmount) {
+        const transTotal = detail.reduce((total, detail) => {
+            const { item, quantity, redeemedQuantity } = detail;
+            if (redeemedQuantity > quantity) {
+                throw new common_1.UnprocessableEntityException('Jumlah diredeem gak lebih banyak dari jumlah itemnya yg diorder dong');
+            }
+            let subtotal = 0;
+            if (redeemedQuantity > 0) {
+                const unredeemedValue = quantity * item.price - redeemedQuantity * item.price;
+                subtotal = Number(total) + unredeemedValue;
+                return subtotal;
+            }
+            subtotal = Number(total) + item.price * quantity;
+            if (isCompliment) {
+                complimentAmount > subtotal ? (subtotal -= subtotal) : (subtotal -= complimentAmount);
+            }
+            return subtotal;
+        }, 0);
+        return transTotal;
     }
     async generateInvoiceNo() {
         const now = new Date();
