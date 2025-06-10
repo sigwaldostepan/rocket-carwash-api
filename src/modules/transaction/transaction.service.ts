@@ -84,25 +84,38 @@ export class TransactionService {
     worksheet.columns = [
       { header: 'Invoice No', key: 'invoiceNo' },
       { header: 'Customer', key: 'customer' },
-      { header: 'Total', key: 'transTotal' },
       { header: 'Payment Method', key: 'paymentMethod' },
-      { header: 'Created At', key: 'createdAt' },
+      { header: 'Tanggal', key: 'createdAt' },
       { header: 'Item', key: 'item' },
+      { header: 'Subtotal', key: 'subtotal' },
+      { header: 'Diskon', key: 'discount' },
+      { header: 'Total', key: 'transTotal' },
     ];
 
     worksheet.addRows(
-      transactions.map((transaction) => ({
-        invoiceNo: transaction.invoiceNo,
-        customer: transaction.customer.name,
-        transTotal: transaction.transTotal,
-        paymentMethod: transaction.paymentMethod,
-        createdAt: transaction.createdAt,
-        item: transaction.details.map((detail) => detail.item.name).join(', '),
-      })),
+      transactions.map((transaction) => {
+        const subtotal = transaction.details.reduce((total, detail) => total + detail.item.price * detail.quantity, 0);
+        const discount = transaction.details.reduce((total, detail) => {
+          const redeemedAmount = +detail.redeemedQuantity * +detail.item.price || 0;
+          const { complimentValue } = transaction;
+
+          return total + redeemedAmount + +complimentValue;
+        }, 0);
+
+        return {
+          invoiceNo: transaction.invoiceNo,
+          customer: transaction.customer?.name || '-',
+          paymentMethod: transaction.paymentMethod,
+          createdAt: transaction.createdAt,
+          item: transaction.details.map((detail) => detail.item.name).join(', '),
+          subtotal,
+          discount,
+          transTotal: transaction.transTotal,
+        };
+      }),
     );
 
     const buffer = await workbook.xlsx.writeBuffer();
-    console.log(buffer);
     return buffer;
   }
 
