@@ -5,6 +5,7 @@ import { Item } from '../item/entities/item.entity';
 import { CustomerService } from '../customer/customer.service';
 import { Customer } from '../customer/entities/customer.entity';
 import { FindTransactionDto } from './dto/find-transaction.dto';
+import * as ExcelJS from 'exceljs';
 export declare class TransactionService {
     private readonly custService;
     private readonly transRepo;
@@ -16,8 +17,13 @@ export declare class TransactionService {
         transactions: Transaction[];
         total: number;
     }>;
+    getTransactionSummary(findTransactionDto: FindTransactionDto): Promise<{
+        transactionCount: number;
+        transactionTotalAmount: number;
+        paymentMethodSummary: any[];
+    }>;
+    exportTransactionsExcel(exportTransactionExcelDto: FindTransactionDto): Promise<ExcelJS.Buffer>;
     findTransactionById(id: string): Promise<Transaction>;
-    private calculateTransTotal;
     createTransaction(createTransactionDto: CreateTransactionDto): Promise<{
         details: TransactionDetail[];
         id: string;
@@ -30,5 +36,10 @@ export declare class TransactionService {
         createdAt: Date;
     }>;
     deleteTransaction(id: string): Promise<Transaction>;
+    private assignDateFilter;
+    private getTransactionCount;
+    private getTransactionTotalAmount;
+    private getPaymentMethodSummary;
+    private calculateTransTotal;
     private generateInvoiceNo;
 }

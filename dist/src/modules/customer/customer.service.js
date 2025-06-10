@@ -24,7 +24,7 @@ let CustomerService = class CustomerService {
     async findCustomers({ limit, offset, q, by }) {
         const query = this.customerRepo.createQueryBuilder('customer');
         const whitelistSearchBy = ['phoneNumber', 'name'];
-        const searchBy = whitelistSearchBy.includes(by) ? by : 'phoneNumber';
+        const searchBy = whitelistSearchBy.includes(by) ? by : 'name';
         if (q) {
             query.where(`customer.${searchBy} ILIKE :keyword`, { keyword: `%${q}%` });
         }

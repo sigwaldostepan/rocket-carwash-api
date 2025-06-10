@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException, UnprocessableEntity
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Transaction, TransactionDetail } from './entities';
-import { Between, In, Repository } from 'typeorm';
+import { Between, In, Repository, SelectQueryBuilder } from 'typeorm';
 import { Item } from '../item/entities/item.entity';
 import { CustomerService } from '../customer/customer.service';
 import { Customer } from '../customer/entities/customer.entity';
@@ -18,6 +18,7 @@ import {
   startOfWeek,
   startOfYear,
 } from 'date-fns';
+import * as ExcelJS from 'exceljs';
 
 @Injectable()
 export class TransactionService {
@@ -40,34 +41,12 @@ export class TransactionService {
       .createQueryBuilder('transaction')
       .orderBy('transaction.invoiceNo', 'ASC')
       .leftJoinAndSelect('transaction.customer', 'customer')
+      .leftJoinAndSelect('transaction.details', 'details')
+      .leftJoinAndSelect('details.item', 'item')
       .take(limit)
       .skip(offset);
 
-    if (dateFrom) {
-      let from = null;
-      let to = null;
-
-      if (range === 'daily' || !range) {
-        from = startOfDay(dateFrom);
-        to = endOfDay(dateFrom);
-      } else if (range === 'weekly') {
-        from = startOfWeek(dateFrom);
-        to = endOfWeek(dateFrom);
-      } else if (range === 'monthly') {
-        from = startOfMonth(dateFrom);
-        to = endOfMonth(dateFrom);
-      } else if (range === 'yearly') {
-        from = startOfYear(dateFrom);
-        to = endOfYear(dateFrom);
-      } else if (range === 'toToday') {
-        from = startOfDay(dateFrom);
-        to = endOfDay(new Date());
-      } else {
-        throw new UnprocessableEntityException('Tipe range gak valid');
-      }
-
-      query.where('transaction.createdAt BETWEEN :from AND :to', { from, to });
-    }
+    this.assignDateFilter(dateFrom, range, query);
 
     const [transactions, total] = await query.getManyAndCount();
 
@@ -75,6 +54,69 @@ export class TransactionService {
       transactions,
       total,
     };
+  }
+
+  public async getTransactionSummary(findTransactionDto: FindTransactionDto) {
+    const [transactionCount, transactionTotalAmount, paymentMethodSummary] = await Promise.all([
+      this.getTransactionCount(findTransactionDto),
+      this.getTransactionTotalAmount(findTransactionDto),
+      this.getPaymentMethodSummary(findTransactionDto),
+    ]);
+
+    const updatedPaymentMethodSummary = paymentMethodSummary.map((summary) => ({
+      ...summary,
+      percentage: transactionTotalAmount > 0 ? ((+summary.totalAmount / transactionTotalAmount) * 100).toFixed(2) : 0,
+    }));
+
+    return {
+      transactionCount,
+      transactionTotalAmount,
+      paymentMethodSummary: updatedPaymentMethodSummary,
+    };
+  }
+
+  public async exportTransactionsExcel(exportTransactionExcelDto: FindTransactionDto) {
+    const { transactions } = await this.findTransactions(exportTransactionExcelDto);
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Transaksi');
+
+    worksheet.columns = [
+      { header: 'Invoice No', key: 'invoiceNo' },
+      { header: 'Customer', key: 'customer' },
+      { header: 'Payment Method', key: 'paymentMethod' },
+      { header: 'Tanggal', key: 'createdAt' },
+      { header: 'Item', key: 'item' },
+      { header: 'Subtotal', key: 'subtotal' },
+      { header: 'Diskon', key: 'discount' },
+      { header: 'Total', key: 'transTotal' },
+    ];
+
+    worksheet.addRows(
+      transactions.map((transaction) => {
+        const subtotal = transaction.details.reduce((total, detail) => total + detail.item.price * detail.quantity, 0);
+        const discount = transaction.details.reduce((total, detail) => {
+          const redeemedAmount = +detail.redeemedQuantity * +detail.item.price || 0;
+          const { complimentValue } = transaction;
+
+          return total + redeemedAmount + +complimentValue;
+        }, 0);
+
+        return {
+          invoiceNo: transaction.invoiceNo,
+          customer: transaction.customer?.name || '-',
+          paymentMethod: transaction.paymentMethod,
+          createdAt: transaction.createdAt,
+          item: transaction.details.map((detail) => detail.item.name).join(', '),
+          subtotal,
+          discount,
+          transTotal: transaction.transTotal,
+        };
+      }),
+    );
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return buffer;
   }
 
   public async findTransactionById(id: string) {
@@ -90,35 +132,6 @@ export class TransactionService {
     }
 
     return transaction;
-  }
-
-  private calculateTransTotal(detail: TransactionDetail[], isCompliment: boolean, complimentAmount: number) {
-    const transTotal = detail.reduce((total, detail) => {
-      const { item, quantity, redeemedQuantity } = detail;
-
-      if (redeemedQuantity > quantity) {
-        throw new UnprocessableEntityException('Jumlah diredeem gak lebih banyak dari jumlah itemnya yg diorder dong');
-      }
-
-      let subtotal = 0;
-
-      if (redeemedQuantity > 0) {
-        const unredeemedValue = quantity * item.price - redeemedQuantity * item.price;
-        subtotal = Number(total) + unredeemedValue;
-
-        return subtotal;
-      }
-
-      subtotal = Number(total) + item.price * quantity;
-
-      if (isCompliment) {
-        complimentAmount > subtotal ? (subtotal -= subtotal) : (subtotal -= complimentAmount);
-      }
-
-      return subtotal;
-    }, 0);
-
-    return transTotal;
   }
 
   public async createTransaction(createTransactionDto: CreateTransactionDto) {
@@ -162,7 +175,6 @@ export class TransactionService {
     }
 
     const addPointTransaction = items.some((item) => !!item.isGetPoint);
-    console.log(addPointTransaction);
 
     const itemMap = new Map(items.map((item) => [item.id, item]));
     if (addPointTransaction && customer) {
@@ -178,12 +190,8 @@ export class TransactionService {
         return total;
       }, 0);
 
-      console.log({ pointsToAdd });
-
       customer.point += pointsToAdd;
     }
-
-    console.log(`point : ${customer.point}`);
 
     const transactionDetail: TransactionDetail[] = createTransactionDto.items.map((dtoItem) => {
       const isRedeemed = dtoItem.redeemedQuantity > 0;
@@ -236,6 +244,111 @@ export class TransactionService {
     const transaction = await this.findTransactionById(id);
 
     return await this.transRepo.remove(transaction);
+  }
+
+  private assignDateFilter(
+    dateFrom: string,
+    range: FindTransactionDto['range'],
+    query: SelectQueryBuilder<Transaction>,
+  ) {
+    if (!dateFrom) {
+      return;
+    }
+
+    let from = null;
+    let to = null;
+
+    if (range === 'daily' || !range) {
+      from = startOfDay(dateFrom);
+      to = endOfDay(dateFrom);
+    } else if (range === 'weekly') {
+      from = startOfWeek(dateFrom);
+      to = endOfWeek(dateFrom);
+    } else if (range === 'monthly') {
+      from = startOfMonth(dateFrom);
+      to = endOfMonth(dateFrom);
+    } else if (range === 'yearly') {
+      from = startOfYear(dateFrom);
+      to = endOfYear(dateFrom);
+    } else if (range === 'toToday') {
+      from = startOfDay(dateFrom);
+      to = endOfDay(new Date());
+    } else {
+      throw new UnprocessableEntityException('Tipe range gak valid');
+    }
+
+    query.where('transaction.createdAt BETWEEN :from AND :to', { from, to });
+  }
+
+  private async getTransactionCount(findTransactionDto: FindTransactionDto) {
+    const { dateFrom, range } = findTransactionDto;
+    const query = this.transRepo.createQueryBuilder('transaction').select('COUNT(*)', 'transactionCount');
+
+    this.assignDateFilter(dateFrom, range, query);
+
+    const { transactionCount } = await query.getRawOne();
+    return +transactionCount;
+  }
+
+  private async getTransactionTotalAmount(findTransactionDto: FindTransactionDto) {
+    const { dateFrom, range } = findTransactionDto;
+    const query = this.transRepo
+      .createQueryBuilder('transaction')
+      .select('SUM(transaction.transTotal)', 'sumTransTotal');
+
+    this.assignDateFilter(dateFrom, range, query);
+
+    const { sumTransTotal } = await query.getRawOne();
+    return +sumTransTotal;
+  }
+
+  private async getPaymentMethodSummary(findTransactionDto: FindTransactionDto) {
+    const { dateFrom, range } = findTransactionDto;
+    const query = this.transRepo
+      .createQueryBuilder('transaction')
+      .select('transaction.paymentMethod', 'paymentMethod')
+      .addSelect('COUNT(transaction.id)', 'count')
+      .addSelect('SUM(transaction.transTotal)', 'totalAmount')
+      .addGroupBy('transaction.paymentMethod');
+
+    this.assignDateFilter(dateFrom, range, query);
+
+    const result = await query.getRawMany();
+
+    return result;
+  }
+
+  private calculateTransTotal(detail: TransactionDetail[], isCompliment: boolean, complimentAmount: number) {
+    const transTotal = detail.reduce((total, detail) => {
+      const { item, quantity, redeemedQuantity } = detail;
+
+      if (redeemedQuantity > quantity) {
+        throw new UnprocessableEntityException('Jumlah diredeem gak lebih banyak dari jumlah itemnya yg diorder dong');
+      }
+
+      let subtotal = 0;
+
+      if (redeemedQuantity > 0) {
+        const unredeemedValue = quantity * item.price - redeemedQuantity * item.price;
+        subtotal = Number(total) + unredeemedValue;
+
+        return subtotal;
+      }
+
+      subtotal = Number(total) + item.price * quantity;
+
+      if (isCompliment) {
+        if (complimentAmount > subtotal) {
+          subtotal = 0;
+        } else {
+          subtotal -= complimentAmount;
+        }
+      }
+
+      return subtotal;
+    }, 0);
+
+    return transTotal;
   }
 
   private async generateInvoiceNo() {

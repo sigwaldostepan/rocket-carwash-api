@@ -1,6 +1,7 @@
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { FindTransactionDto } from './dto/find-transaction.dto';
+import { Response } from 'express';
 export declare class TransactionController {
     private readonly transactionService;
     constructor(transactionService: TransactionService);
@@ -13,6 +14,12 @@ export declare class TransactionController {
             totalPages: number;
         };
     }>;
+    getTransactionSummary(findTransactionDto: FindTransactionDto): Promise<{
+        transactionCount: number;
+        transactionTotalAmount: number;
+        paymentMethodSummary: any[];
+    }>;
+    exportTransactions(exportTransactionExcelDto: FindTransactionDto, res: Response): Promise<Response<any, Record<string, any>>>;
     findOne(id: string): Promise<import("./entities").Transaction>;
     create(createTransactionDto: CreateTransactionDto): Promise<{
         details: import("./entities").TransactionDetail[];
