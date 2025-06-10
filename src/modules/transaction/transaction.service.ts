@@ -18,7 +18,7 @@ import {
   startOfWeek,
   startOfYear,
 } from 'date-fns';
-import { query } from 'express';
+import * as ExcelJS from 'exceljs';
 
 @Injectable()
 export class TransactionService {
@@ -41,6 +41,8 @@ export class TransactionService {
       .createQueryBuilder('transaction')
       .orderBy('transaction.invoiceNo', 'ASC')
       .leftJoinAndSelect('transaction.customer', 'customer')
+      .leftJoinAndSelect('transaction.details', 'details')
+      .leftJoinAndSelect('details.item', 'item')
       .take(limit)
       .skip(offset);
 
@@ -71,6 +73,37 @@ export class TransactionService {
       transactionTotalAmount,
       paymentMethodSummary: updatedPaymentMethodSummary,
     };
+  }
+
+  public async exportTransactionsExcel(exportTransactionExcelDto: FindTransactionDto) {
+    const { transactions } = await this.findTransactions(exportTransactionExcelDto);
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Transaksi');
+
+    worksheet.columns = [
+      { header: 'Invoice No', key: 'invoiceNo' },
+      { header: 'Customer', key: 'customer' },
+      { header: 'Total', key: 'transTotal' },
+      { header: 'Payment Method', key: 'paymentMethod' },
+      { header: 'Created At', key: 'createdAt' },
+      { header: 'Item', key: 'item' },
+    ];
+
+    worksheet.addRows(
+      transactions.map((transaction) => ({
+        invoiceNo: transaction.invoiceNo,
+        customer: transaction.customer.name,
+        transTotal: transaction.transTotal,
+        paymentMethod: transaction.paymentMethod,
+        createdAt: transaction.createdAt,
+        item: transaction.details.map((detail) => detail.item.name).join(', '),
+      })),
+    );
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    console.log(buffer);
+    return buffer;
   }
 
   public async findTransactionById(id: string) {
@@ -292,7 +325,11 @@ export class TransactionService {
       subtotal = Number(total) + item.price * quantity;
 
       if (isCompliment) {
-        complimentAmount > subtotal ? (subtotal -= subtotal) : (subtotal -= complimentAmount);
+        if (complimentAmount > subtotal) {
+          subtotal = 0;
+        } else {
+          subtotal -= complimentAmount;
+        }
       }
 
       return subtotal;

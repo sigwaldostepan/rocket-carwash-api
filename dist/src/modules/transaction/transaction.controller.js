@@ -29,6 +29,11 @@ let TransactionController = class TransactionController {
     async getTransactionSummary(findTransactionDto) {
         return await this.transactionService.getTransactionSummary(findTransactionDto);
     }
+    async exportTransactions(exportTransactionExcelDto, res) {
+        exportTransactionExcelDto.limit = 1000000;
+        const buffer = await this.transactionService.exportTransactionsExcel(exportTransactionExcelDto);
+        return res.header('Content-Disposition', 'attachment; filename=anlikodullendirme.xlsx').send(buffer);
+    }
     findOne(id) {
         return this.transactionService.findTransactionById(id);
     }
@@ -54,6 +59,14 @@ __decorate([
     __metadata("design:paramtypes", [find_transaction_dto_1.FindTransactionDto]),
     __metadata("design:returntype", Promise)
 ], TransactionController.prototype, "getTransactionSummary", null);
+__decorate([
+    (0, common_1.Get)('/export-excel'),
+    __param(0, (0, common_1.Query)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [find_transaction_dto_1.FindTransactionDto, Object]),
+    __metadata("design:returntype", Promise)
+], TransactionController.prototype, "exportTransactions", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),

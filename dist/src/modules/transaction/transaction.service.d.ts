@@ -5,6 +5,7 @@ import { Item } from '../item/entities/item.entity';
 import { CustomerService } from '../customer/customer.service';
 import { Customer } from '../customer/entities/customer.entity';
 import { FindTransactionDto } from './dto/find-transaction.dto';
+import * as ExcelJS from 'exceljs';
 export declare class TransactionService {
     private readonly custService;
     private readonly transRepo;
@@ -21,6 +22,7 @@ export declare class TransactionService {
         transactionTotalAmount: number;
         paymentMethodSummary: any[];
     }>;
+    exportTransactionsExcel(exportTransactionExcelDto: FindTransactionDto): Promise<ExcelJS.Buffer>;
     findTransactionById(id: string): Promise<Transaction>;
     createTransaction(createTransactionDto: CreateTransactionDto): Promise<{
         details: TransactionDetail[];
