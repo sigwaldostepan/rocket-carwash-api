@@ -108,15 +108,17 @@ let TransactionService = class TransactionService {
             { header: 'Tanggal', key: 'createdAt' },
             { header: 'Item', key: 'item' },
             { header: 'Subtotal', key: 'subtotal' },
-            { header: 'Diskon', key: 'discount' },
-            { header: 'Total', key: 'transTotal' },
+            { header: 'Diskon (komplimen/tukar poin)', key: 'discount' },
+            { header: 'Komplimen Shift Malam', key: 'nightShiftCompliment' },
+            { header: 'Total Uang Masuk', key: 'transTotal' },
         ];
         worksheet.addRows(transactions.map((transaction) => {
             const subtotal = transaction.details.reduce((total, detail) => total + detail.item.price * detail.quantity, 0);
             const discount = transaction.details.reduce((total, detail) => {
                 const redeemedAmount = +detail.redeemedQuantity * +detail.item.price || 0;
-                const { complimentValue } = transaction;
-                return total + redeemedAmount + +complimentValue;
+                const { complimentValue, isNightShift } = transaction;
+                const complimentAmount = isNightShift ? 0 : +complimentValue;
+                return total + redeemedAmount + complimentAmount;
             }, 0);
             return {
                 invoiceNo: transaction.invoiceNo,
@@ -126,6 +128,7 @@ let TransactionService = class TransactionService {
                 item: transaction.details.map((detail) => detail.item.name).join(', '),
                 subtotal,
                 discount,
+                nightShiftCompliment: transaction.isNightShift ? transaction.complimentValue : 0,
                 transTotal: transaction.transTotal,
             };
         }));
@@ -211,6 +214,7 @@ let TransactionService = class TransactionService {
             transTotal: this.calculateTransTotal(transactionDetail, createTransactionDto.isCompliment, createTransactionDto.complimentAmount),
             isCompliment: createTransactionDto.isCompliment,
             paymentMethod: createTransactionDto.paymentMethod,
+            isNightShift: createTransactionDto.isNightShift,
             details: transactionDetail,
             complimentValue: createTransactionDto.complimentAmount ?? 0,
         });

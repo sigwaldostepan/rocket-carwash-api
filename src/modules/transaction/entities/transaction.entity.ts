@@ -32,6 +32,9 @@ export class Transaction {
   @Column({ type: 'decimal', default: 0 })
   complimentValue: number;
 
+  @Column({ default: false })
+  isNightShift: boolean;
+
   @CreateDateColumn({
     type: 'timestamptz',
   })

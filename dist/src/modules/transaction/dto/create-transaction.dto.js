@@ -63,4 +63,9 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateTransactionDto.prototype, "complimentAmount", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CreateTransactionDto.prototype, "isNightShift", void 0);
 //# sourceMappingURL=create-transaction.dto.js.map

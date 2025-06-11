@@ -33,6 +33,7 @@ export declare class TransactionService {
         paymentMethod: string;
         isCompliment?: boolean;
         complimentValue: number;
+        isNightShift: boolean;
         createdAt: Date;
     }>;
     deleteTransaction(id: string): Promise<Transaction>;

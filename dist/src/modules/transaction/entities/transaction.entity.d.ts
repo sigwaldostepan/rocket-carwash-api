@@ -9,5 +9,6 @@ export declare class Transaction {
     paymentMethod: string;
     isCompliment?: boolean;
     complimentValue: number;
+    isNightShift: boolean;
     createdAt: Date;
 }

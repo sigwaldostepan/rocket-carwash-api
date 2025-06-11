@@ -30,6 +30,7 @@ export declare class TransactionController {
         paymentMethod: string;
         isCompliment?: boolean;
         complimentValue: number;
+        isNightShift: boolean;
         createdAt: Date;
     }>;
     remove(id: string): Promise<import("./entities").Transaction>;
