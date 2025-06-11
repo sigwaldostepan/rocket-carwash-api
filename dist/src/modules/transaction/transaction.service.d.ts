@@ -20,7 +20,24 @@ export declare class TransactionService {
     getTransactionSummary(findTransactionDto: FindTransactionDto): Promise<{
         transactionCount: number;
         transactionTotalAmount: number;
-        paymentMethodSummary: any[];
+        paymentMethodSummary: {
+            percentage: string | number;
+            paymentMethod: string;
+            count: number;
+            totalAmount: number;
+        }[];
+        complimentSummary: {
+            normalCompliment: {
+                value: number;
+                count: number;
+                percentage: string;
+            };
+            nightShiftCompliment: {
+                value: number;
+                count: number;
+                percentage: number;
+            };
+        };
     }>;
     exportTransactionsExcel(exportTransactionExcelDto: FindTransactionDto): Promise<ExcelJS.Buffer>;
     findTransactionById(id: string): Promise<Transaction>;
@@ -41,6 +58,8 @@ export declare class TransactionService {
     private getTransactionCount;
     private getTransactionTotalAmount;
     private getPaymentMethodSummary;
+    private getComplimentSummary;
+    private formatSummaryResponse;
     private calculateTransTotal;
     private generateInvoiceNo;
 }

@@ -82,19 +82,18 @@ let TransactionService = class TransactionService {
         };
     }
     async getTransactionSummary(findTransactionDto) {
-        const [transactionCount, transactionTotalAmount, paymentMethodSummary] = await Promise.all([
+        const [transactionCount, transactionTotalAmount, paymentMethodSummary, complimentSummary] = await Promise.all([
             this.getTransactionCount(findTransactionDto),
             this.getTransactionTotalAmount(findTransactionDto),
             this.getPaymentMethodSummary(findTransactionDto),
+            this.getComplimentSummary(findTransactionDto),
         ]);
-        const updatedPaymentMethodSummary = paymentMethodSummary.map((summary) => ({
-            ...summary,
-            percentage: transactionTotalAmount > 0 ? ((+summary.totalAmount / transactionTotalAmount) * 100).toFixed(2) : 0,
-        }));
+        const { complimentSummary: formattedComplimentSummary, paymentMethodSummary: formattedPaymentMethodSummary } = this.formatSummaryResponse(complimentSummary, paymentMethodSummary, transactionTotalAmount);
         return {
             transactionCount,
             transactionTotalAmount,
-            paymentMethodSummary: updatedPaymentMethodSummary,
+            paymentMethodSummary: formattedPaymentMethodSummary,
+            complimentSummary: formattedComplimentSummary,
         };
     }
     async exportTransactionsExcel(exportTransactionExcelDto) {
@@ -286,6 +285,44 @@ let TransactionService = class TransactionService {
         this.assignDateFilter(dateFrom, range, query);
         const result = await query.getRawMany();
         return result;
+    }
+    async getComplimentSummary(findTransactionDto) {
+        const { dateFrom, range } = findTransactionDto;
+        const query = this.transRepo
+            .createQueryBuilder('transaction')
+            .select('SUM(CASE WHEN transaction.isNightShift = true THEN transaction.complimentValue ELSE 0 END)', 'nightShiftComplimentAmount')
+            .addSelect('SUM(CASE WHEN transaction.isNightShift = false THEN transaction.complimentValue ELSE 0 END)', 'normalComplimentAmount')
+            .addSelect('COUNT(*)', 'complimentCount')
+            .addSelect('COUNT(CASE WHEN transaction.isNightShift = true THEN 1 END)', 'nightShiftComplimentCount')
+            .addSelect('COUNT(CASE WHEN transaction.isNightShift = false THEN 1 END)', 'normalComplimentCount');
+        this.assignDateFilter(dateFrom, range, query);
+        query.where('transaction.isCompliment = :isCompliment', { isCompliment: true });
+        const result = await query.getRawOne();
+        return result;
+    }
+    formatSummaryResponse(complimentSummary, paymentMethodSummary, totalAmount) {
+        const { nightShiftComplimentAmount, nightShiftComplimentCount, normalComplimentAmount, normalComplimentCount } = complimentSummary;
+        const updatedPaymentMethodSummary = paymentMethodSummary.map((summary) => ({
+            ...summary,
+            percentage: totalAmount > 0 ? ((+summary.totalAmount / totalAmount) * 100).toFixed(2) : 0,
+        }));
+        const nightShiftPercentage = -((+nightShiftComplimentAmount / +totalAmount) * 100).toFixed(2);
+        const normalComplimentPercentage = ((+normalComplimentAmount / +totalAmount) * 100).toFixed(2);
+        return {
+            paymentMethodSummary: updatedPaymentMethodSummary,
+            complimentSummary: {
+                normalCompliment: {
+                    value: normalComplimentAmount,
+                    count: normalComplimentCount,
+                    percentage: normalComplimentPercentage,
+                },
+                nightShiftCompliment: {
+                    value: nightShiftComplimentAmount,
+                    count: nightShiftComplimentCount,
+                    percentage: nightShiftPercentage,
+                },
+            },
+        };
     }
     calculateTransTotal(detail, isCompliment, complimentAmount) {
         const transTotal = detail.reduce((total, detail) => {
