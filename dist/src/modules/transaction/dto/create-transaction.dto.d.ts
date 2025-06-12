@@ -9,4 +9,5 @@ export declare class CreateTransactionDto {
     paymentMethod: string;
     isCompliment?: boolean;
     complimentAmount: number;
+    isNightShift?: boolean;
 }

@@ -19,6 +19,7 @@ import {
   startOfYear,
 } from 'date-fns';
 import * as ExcelJS from 'exceljs';
+import { ComplimentSummary, PaymentMethodSummary } from './types';
 
 @Injectable()
 export class TransactionService {
@@ -57,21 +58,21 @@ export class TransactionService {
   }
 
   public async getTransactionSummary(findTransactionDto: FindTransactionDto) {
-    const [transactionCount, transactionTotalAmount, paymentMethodSummary] = await Promise.all([
+    const [transactionCount, transactionTotalAmount, paymentMethodSummary, complimentSummary] = await Promise.all([
       this.getTransactionCount(findTransactionDto),
       this.getTransactionTotalAmount(findTransactionDto),
       this.getPaymentMethodSummary(findTransactionDto),
+      this.getComplimentSummary(findTransactionDto),
     ]);
 
-    const updatedPaymentMethodSummary = paymentMethodSummary.map((summary) => ({
-      ...summary,
-      percentage: transactionTotalAmount > 0 ? ((+summary.totalAmount / transactionTotalAmount) * 100).toFixed(2) : 0,
-    }));
+    const { complimentSummary: formattedComplimentSummary, paymentMethodSummary: formattedPaymentMethodSummary } =
+      this.formatSummaryResponse(complimentSummary, paymentMethodSummary, transactionTotalAmount);
 
     return {
       transactionCount,
       transactionTotalAmount,
-      paymentMethodSummary: updatedPaymentMethodSummary,
+      paymentMethodSummary: formattedPaymentMethodSummary,
+      complimentSummary: formattedComplimentSummary,
     };
   }
 
@@ -88,8 +89,9 @@ export class TransactionService {
       { header: 'Tanggal', key: 'createdAt' },
       { header: 'Item', key: 'item' },
       { header: 'Subtotal', key: 'subtotal' },
-      { header: 'Diskon', key: 'discount' },
-      { header: 'Total', key: 'transTotal' },
+      { header: 'Diskon (komplimen/tukar poin)', key: 'discount' },
+      { header: 'Komplimen Shift Malam', key: 'nightShiftCompliment' },
+      { header: 'Total Uang Masuk', key: 'transTotal' },
     ];
 
     worksheet.addRows(
@@ -97,9 +99,11 @@ export class TransactionService {
         const subtotal = transaction.details.reduce((total, detail) => total + detail.item.price * detail.quantity, 0);
         const discount = transaction.details.reduce((total, detail) => {
           const redeemedAmount = +detail.redeemedQuantity * +detail.item.price || 0;
-          const { complimentValue } = transaction;
+          const { complimentValue, isNightShift } = transaction;
 
-          return total + redeemedAmount + +complimentValue;
+          const complimentAmount = isNightShift ? 0 : +complimentValue;
+
+          return total + redeemedAmount + complimentAmount;
         }, 0);
 
         return {
@@ -110,6 +114,7 @@ export class TransactionService {
           item: transaction.details.map((detail) => detail.item.name).join(', '),
           subtotal,
           discount,
+          nightShiftCompliment: transaction.isNightShift ? transaction.complimentValue : 0,
           transTotal: transaction.transTotal,
         };
       }),
@@ -229,6 +234,7 @@ export class TransactionService {
       ),
       isCompliment: createTransactionDto.isCompliment,
       paymentMethod: createTransactionDto.paymentMethod,
+      isNightShift: createTransactionDto.isNightShift,
       details: transactionDetail,
       complimentValue: createTransactionDto.complimentAmount ?? 0,
     });
@@ -302,7 +308,7 @@ export class TransactionService {
     return +sumTransTotal;
   }
 
-  private async getPaymentMethodSummary(findTransactionDto: FindTransactionDto) {
+  private async getPaymentMethodSummary(findTransactionDto: FindTransactionDto): Promise<PaymentMethodSummary[]> {
     const { dateFrom, range } = findTransactionDto;
     const query = this.transRepo
       .createQueryBuilder('transaction')
@@ -316,6 +322,64 @@ export class TransactionService {
     const result = await query.getRawMany();
 
     return result;
+  }
+
+  private async getComplimentSummary(findTransactionDto: FindTransactionDto): Promise<ComplimentSummary> {
+    const { dateFrom, range } = findTransactionDto;
+    const query = this.transRepo
+      .createQueryBuilder('transaction')
+      .select(
+        'SUM(CASE WHEN transaction.isNightShift = true THEN transaction.complimentValue ELSE 0 END)',
+        'nightShiftComplimentAmount',
+      )
+      .addSelect(
+        'SUM(CASE WHEN transaction.isNightShift = false THEN transaction.complimentValue ELSE 0 END)',
+        'normalComplimentAmount',
+      )
+      .addSelect('COUNT(*)', 'complimentCount')
+      .addSelect('COUNT(CASE WHEN transaction.isNightShift = true THEN 1 END)', 'nightShiftComplimentCount')
+      .addSelect('COUNT(CASE WHEN transaction.isNightShift = false THEN 1 END)', 'normalComplimentCount');
+
+    this.assignDateFilter(dateFrom, range, query);
+
+    query.where('transaction.isCompliment = :isCompliment', { isCompliment: true });
+
+    const result = await query.getRawOne();
+
+    return result;
+  }
+
+  private formatSummaryResponse(
+    complimentSummary: ComplimentSummary,
+    paymentMethodSummary: PaymentMethodSummary[],
+    totalAmount: number,
+  ) {
+    const { nightShiftComplimentAmount, nightShiftComplimentCount, normalComplimentAmount, normalComplimentCount } =
+      complimentSummary;
+
+    const updatedPaymentMethodSummary = paymentMethodSummary.map((summary) => ({
+      ...summary,
+      percentage: totalAmount > 0 ? ((+summary.totalAmount / totalAmount) * 100).toFixed(2) : 0,
+    }));
+
+    const nightShiftPercentage = -((+nightShiftComplimentAmount / +totalAmount) * 100).toFixed(2);
+    const normalComplimentPercentage = ((+normalComplimentAmount / +totalAmount) * 100).toFixed(2);
+
+    return {
+      paymentMethodSummary: updatedPaymentMethodSummary,
+      complimentSummary: {
+        normalCompliment: {
+          value: normalComplimentAmount,
+          count: normalComplimentCount,
+          percentage: normalComplimentPercentage,
+        },
+        nightShiftCompliment: {
+          value: nightShiftComplimentAmount,
+          count: nightShiftComplimentCount,
+          percentage: nightShiftPercentage,
+        },
+      },
+    };
   }
 
   private calculateTransTotal(detail: TransactionDetail[], isCompliment: boolean, complimentAmount: number) {

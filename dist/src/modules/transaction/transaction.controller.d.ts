@@ -17,7 +17,24 @@ export declare class TransactionController {
     getTransactionSummary(findTransactionDto: FindTransactionDto): Promise<{
         transactionCount: number;
         transactionTotalAmount: number;
-        paymentMethodSummary: any[];
+        paymentMethodSummary: {
+            percentage: string | number;
+            paymentMethod: string;
+            count: number;
+            totalAmount: number;
+        }[];
+        complimentSummary: {
+            normalCompliment: {
+                value: number;
+                count: number;
+                percentage: string;
+            };
+            nightShiftCompliment: {
+                value: number;
+                count: number;
+                percentage: number;
+            };
+        };
     }>;
     exportTransactions(exportTransactionExcelDto: FindTransactionDto, res: Response): Promise<Response<any, Record<string, any>>>;
     findOne(id: string): Promise<import("./entities").Transaction>;
@@ -30,6 +47,7 @@ export declare class TransactionController {
         paymentMethod: string;
         isCompliment?: boolean;
         complimentValue: number;
+        isNightShift: boolean;
         createdAt: Date;
     }>;
     remove(id: string): Promise<import("./entities").Transaction>;

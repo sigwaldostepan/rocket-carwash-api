@@ -51,4 +51,8 @@ export class CreateTransactionDto {
   @Min(0, { message: 'Nilai komplimen gak boleh negatif' })
   @IsNumber()
   complimentAmount: number;
+
+  @IsOptional()
+  @IsBoolean()
+  isNightShift?: boolean;
 }

@@ -53,6 +53,10 @@ __decorate([
     __metadata("design:type", Number)
 ], Transaction.prototype, "complimentValue", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], Transaction.prototype, "isNightShift", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)({
         type: 'timestamptz',
     }),

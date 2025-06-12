@@ -82,19 +82,18 @@ let TransactionService = class TransactionService {
         };
     }
     async getTransactionSummary(findTransactionDto) {
-        const [transactionCount, transactionTotalAmount, paymentMethodSummary] = await Promise.all([
+        const [transactionCount, transactionTotalAmount, paymentMethodSummary, complimentSummary] = await Promise.all([
             this.getTransactionCount(findTransactionDto),
             this.getTransactionTotalAmount(findTransactionDto),
             this.getPaymentMethodSummary(findTransactionDto),
+            this.getComplimentSummary(findTransactionDto),
         ]);
-        const updatedPaymentMethodSummary = paymentMethodSummary.map((summary) => ({
-            ...summary,
-            percentage: transactionTotalAmount > 0 ? ((+summary.totalAmount / transactionTotalAmount) * 100).toFixed(2) : 0,
-        }));
+        const { complimentSummary: formattedComplimentSummary, paymentMethodSummary: formattedPaymentMethodSummary } = this.formatSummaryResponse(complimentSummary, paymentMethodSummary, transactionTotalAmount);
         return {
             transactionCount,
             transactionTotalAmount,
-            paymentMethodSummary: updatedPaymentMethodSummary,
+            paymentMethodSummary: formattedPaymentMethodSummary,
+            complimentSummary: formattedComplimentSummary,
         };
     }
     async exportTransactionsExcel(exportTransactionExcelDto) {
@@ -108,15 +107,17 @@ let TransactionService = class TransactionService {
             { header: 'Tanggal', key: 'createdAt' },
             { header: 'Item', key: 'item' },
             { header: 'Subtotal', key: 'subtotal' },
-            { header: 'Diskon', key: 'discount' },
-            { header: 'Total', key: 'transTotal' },
+            { header: 'Diskon (komplimen/tukar poin)', key: 'discount' },
+            { header: 'Komplimen Shift Malam', key: 'nightShiftCompliment' },
+            { header: 'Total Uang Masuk', key: 'transTotal' },
         ];
         worksheet.addRows(transactions.map((transaction) => {
             const subtotal = transaction.details.reduce((total, detail) => total + detail.item.price * detail.quantity, 0);
             const discount = transaction.details.reduce((total, detail) => {
                 const redeemedAmount = +detail.redeemedQuantity * +detail.item.price || 0;
-                const { complimentValue } = transaction;
-                return total + redeemedAmount + +complimentValue;
+                const { complimentValue, isNightShift } = transaction;
+                const complimentAmount = isNightShift ? 0 : +complimentValue;
+                return total + redeemedAmount + complimentAmount;
             }, 0);
             return {
                 invoiceNo: transaction.invoiceNo,
@@ -126,6 +127,7 @@ let TransactionService = class TransactionService {
                 item: transaction.details.map((detail) => detail.item.name).join(', '),
                 subtotal,
                 discount,
+                nightShiftCompliment: transaction.isNightShift ? transaction.complimentValue : 0,
                 transTotal: transaction.transTotal,
             };
         }));
@@ -211,6 +213,7 @@ let TransactionService = class TransactionService {
             transTotal: this.calculateTransTotal(transactionDetail, createTransactionDto.isCompliment, createTransactionDto.complimentAmount),
             isCompliment: createTransactionDto.isCompliment,
             paymentMethod: createTransactionDto.paymentMethod,
+            isNightShift: createTransactionDto.isNightShift,
             details: transactionDetail,
             complimentValue: createTransactionDto.complimentAmount ?? 0,
         });
@@ -282,6 +285,44 @@ let TransactionService = class TransactionService {
         this.assignDateFilter(dateFrom, range, query);
         const result = await query.getRawMany();
         return result;
+    }
+    async getComplimentSummary(findTransactionDto) {
+        const { dateFrom, range } = findTransactionDto;
+        const query = this.transRepo
+            .createQueryBuilder('transaction')
+            .select('SUM(CASE WHEN transaction.isNightShift = true THEN transaction.complimentValue ELSE 0 END)', 'nightShiftComplimentAmount')
+            .addSelect('SUM(CASE WHEN transaction.isNightShift = false THEN transaction.complimentValue ELSE 0 END)', 'normalComplimentAmount')
+            .addSelect('COUNT(*)', 'complimentCount')
+            .addSelect('COUNT(CASE WHEN transaction.isNightShift = true THEN 1 END)', 'nightShiftComplimentCount')
+            .addSelect('COUNT(CASE WHEN transaction.isNightShift = false THEN 1 END)', 'normalComplimentCount');
+        this.assignDateFilter(dateFrom, range, query);
+        query.where('transaction.isCompliment = :isCompliment', { isCompliment: true });
+        const result = await query.getRawOne();
+        return result;
+    }
+    formatSummaryResponse(complimentSummary, paymentMethodSummary, totalAmount) {
+        const { nightShiftComplimentAmount, nightShiftComplimentCount, normalComplimentAmount, normalComplimentCount } = complimentSummary;
+        const updatedPaymentMethodSummary = paymentMethodSummary.map((summary) => ({
+            ...summary,
+            percentage: totalAmount > 0 ? ((+summary.totalAmount / totalAmount) * 100).toFixed(2) : 0,
+        }));
+        const nightShiftPercentage = -((+nightShiftComplimentAmount / +totalAmount) * 100).toFixed(2);
+        const normalComplimentPercentage = ((+normalComplimentAmount / +totalAmount) * 100).toFixed(2);
+        return {
+            paymentMethodSummary: updatedPaymentMethodSummary,
+            complimentSummary: {
+                normalCompliment: {
+                    value: normalComplimentAmount,
+                    count: normalComplimentCount,
+                    percentage: normalComplimentPercentage,
+                },
+                nightShiftCompliment: {
+                    value: nightShiftComplimentAmount,
+                    count: nightShiftComplimentCount,
+                    percentage: nightShiftPercentage,
+                },
+            },
+        };
     }
     calculateTransTotal(detail, isCompliment, complimentAmount) {
         const transTotal = detail.reduce((total, detail) => {
