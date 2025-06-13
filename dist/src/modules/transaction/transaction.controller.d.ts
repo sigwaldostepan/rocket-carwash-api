@@ -32,7 +32,7 @@ export declare class TransactionController {
             nightShiftCompliment: {
                 value: number;
                 count: number;
-                percentage: number;
+                percentage: string | number;
             };
         };
     }>;

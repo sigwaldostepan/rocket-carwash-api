@@ -39,6 +39,9 @@ let CustomerController = class CustomerController {
     async updateCustomer(id, updateCustomerDto) {
         return await this.customerService.updateCustomer(id, updateCustomerDto);
     }
+    async deleteCustomer(id) {
+        return await this.customerService.deleteCustomer(id);
+    }
 };
 exports.CustomerController = CustomerController;
 __decorate([
@@ -70,6 +73,13 @@ __decorate([
     __metadata("design:paramtypes", [String, update_customer_dto_1.UpdateCustomerDto]),
     __metadata("design:returntype", Promise)
 ], CustomerController.prototype, "updateCustomer", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], CustomerController.prototype, "deleteCustomer", null);
 exports.CustomerController = CustomerController = __decorate([
     (0, common_1.Controller)('customers'),
     __metadata("design:paramtypes", [customer_service_1.CustomerService])

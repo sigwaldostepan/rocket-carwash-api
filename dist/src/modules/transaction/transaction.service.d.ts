@@ -35,7 +35,7 @@ export declare class TransactionService {
             nightShiftCompliment: {
                 value: number;
                 count: number;
-                percentage: number;
+                percentage: string | number;
             };
         };
     }>;

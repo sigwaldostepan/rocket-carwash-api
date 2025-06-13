@@ -296,7 +296,7 @@ let TransactionService = class TransactionService {
             .addSelect('COUNT(CASE WHEN transaction.isNightShift = true THEN 1 END)', 'nightShiftComplimentCount')
             .addSelect('COUNT(CASE WHEN transaction.isNightShift = false THEN 1 END)', 'normalComplimentCount');
         this.assignDateFilter(dateFrom, range, query);
-        query.where('transaction.isCompliment = :isCompliment', { isCompliment: true });
+        query.andWhere('transaction.isCompliment = :isCompliment', { isCompliment: true });
         const result = await query.getRawOne();
         return result;
     }
@@ -306,8 +306,8 @@ let TransactionService = class TransactionService {
             ...summary,
             percentage: totalAmount > 0 ? ((+summary.totalAmount / totalAmount) * 100).toFixed(2) : 0,
         }));
-        const nightShiftPercentage = -((+nightShiftComplimentAmount / +totalAmount) * 100).toFixed(2);
-        const normalComplimentPercentage = ((+normalComplimentAmount / +totalAmount) * 100).toFixed(2);
+        const nightShiftPercentage = totalAmount && +totalAmount > 0 ? -((+nightShiftComplimentAmount / +totalAmount) * 100).toFixed(2) : '0.00';
+        const normalComplimentPercentage = totalAmount && +totalAmount > 0 ? ((+normalComplimentAmount / +totalAmount) * 100).toFixed(2) : '0.00';
         return {
             paymentMethodSummary: updatedPaymentMethodSummary,
             complimentSummary: {
