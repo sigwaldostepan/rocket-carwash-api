@@ -83,4 +83,10 @@ export class CustomerService {
 
     return customerCode;
   }
+
+  public async deleteCustomer(id: string) {
+    const customer = await this.findCustomerById(id);
+
+    return await this.customerRepo.delete(customer);
+  }
 }

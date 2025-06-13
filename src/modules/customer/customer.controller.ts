@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { FindCustomersDto } from './dtos/find-customer.dto';
 import { CustomerService } from './customer.service';
 import { paginateResponse } from '../../common/helpers';
@@ -35,5 +35,10 @@ export class CustomerController {
   @Put(':id')
   public async updateCustomer(@Param('id') id: string, @Body() updateCustomerDto: UpdateCustomerDto) {
     return await this.customerService.updateCustomer(id, updateCustomerDto);
+  }
+
+  @Delete(':id')
+  public async deleteCustomer(@Param('id') id: string) {
+    return await this.customerService.deleteCustomer(id);
   }
 }
