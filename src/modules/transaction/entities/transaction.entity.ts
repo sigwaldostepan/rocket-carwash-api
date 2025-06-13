@@ -16,7 +16,8 @@ export class Transaction {
   details: TransactionDetail[];
 
   @ManyToOne(() => Customer, (customer) => customer.transaction, {
-    onDelete: 'CASCADE',
+    onDelete: 'SET NULL',
+    nullable: true,
   })
   customer: Customer;
 

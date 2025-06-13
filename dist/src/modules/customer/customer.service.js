@@ -72,6 +72,10 @@ let CustomerService = class CustomerService {
         const customerCode = `RO${year}${month}${date}${uniqueCode}`;
         return customerCode;
     }
+    async deleteCustomer(id) {
+        const customer = await this.findCustomerById(id);
+        return await this.customerRepo.delete(customer);
+    }
 };
 exports.CustomerService = CustomerService;
 exports.CustomerService = CustomerService = __decorate([

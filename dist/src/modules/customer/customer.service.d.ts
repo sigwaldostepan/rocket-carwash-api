@@ -14,4 +14,5 @@ export declare class CustomerService {
     createCustomer(createCustomerDto: CreateCustomerDto): Promise<Customer>;
     updateCustomer(id: string, updateCustomerDto: UpdateCustomerDto): Promise<Customer>;
     private generateCustomerCode;
+    deleteCustomer(id: string): Promise<import("typeorm").DeleteResult>;
 }

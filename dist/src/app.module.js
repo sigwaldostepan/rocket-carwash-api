@@ -21,6 +21,7 @@ const customer_module_1 = require("./modules/customer/customer.module");
 const app_controller_1 = require("./app.controller");
 const item_module_1 = require("./modules/item/item.module");
 const transaction_module_1 = require("./modules/transaction/transaction.module");
+const expense_module_1 = require("./modules/expense/expense.module");
 const jwt_config_1 = __importDefault(require("./modules/auth/config/jwt.config"));
 const auth_config_1 = __importDefault(require("./modules/auth/config/auth.config"));
 let AppModule = class AppModule {
@@ -40,6 +41,7 @@ exports.AppModule = AppModule = __decorate([
             customer_module_1.CustomerModule,
             item_module_1.ItemModule,
             transaction_module_1.TransactionModule,
+            expense_module_1.ExpenseModule,
         ],
         providers: [
             {

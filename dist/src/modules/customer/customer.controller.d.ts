@@ -17,4 +17,5 @@ export declare class CustomerController {
     findCustomer(id: string): Promise<import("./entities/customer.entity").Customer>;
     createCustomer(createCustomerDto: CreateCustomerDto): Promise<import("./entities/customer.entity").Customer>;
     updateCustomer(id: string, updateCustomerDto: UpdateCustomerDto): Promise<import("./entities/customer.entity").Customer>;
+    deleteCustomer(id: string): Promise<import("typeorm").DeleteResult>;
 }

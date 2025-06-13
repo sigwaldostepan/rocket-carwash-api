@@ -32,7 +32,8 @@ __decorate([
 ], Transaction.prototype, "details", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => customer_entity_1.Customer, (customer) => customer.transaction, {
-        onDelete: 'CASCADE',
+        onDelete: 'SET NULL',
+        nullable: true,
     }),
     __metadata("design:type", customer_entity_1.Customer)
 ], Transaction.prototype, "customer", void 0);
