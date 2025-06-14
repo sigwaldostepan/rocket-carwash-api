@@ -28,6 +28,21 @@ let ExpenseController = class ExpenseController {
         const { expenses, count } = await this.expenseService.findAll(findExpensesDto);
         return (0, helpers_1.paginateResponse)(expenses, page, limit, count);
     }
+    async getSummary(findExpensesDto) {
+        const summary = await this.expenseService.getSummary(findExpensesDto);
+        const categorySummary = await this.expenseService.getCategorySummary(findExpensesDto);
+        return {
+            summary,
+            categorySummary,
+        };
+    }
+    async exportSummaryToExcel(findExpensesDto, res) {
+        if (!findExpensesDto.limit) {
+            findExpensesDto.limit = 1000000;
+        }
+        const buffer = await this.expenseService.exportExcel(findExpensesDto);
+        return res.header('Content-Disposition', 'attachment; filename=laporan-pengeluaran.xlsx').send(buffer);
+    }
     async create(createCategoryDto) {
         return await this.expenseService.create(createCategoryDto);
     }
@@ -57,6 +72,21 @@ __decorate([
     __metadata("design:paramtypes", [find_expenses_dto_1.FindExpensesDto]),
     __metadata("design:returntype", Promise)
 ], ExpenseController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('/summaries'),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [find_expenses_dto_1.FindExpensesDto]),
+    __metadata("design:returntype", Promise)
+], ExpenseController.prototype, "getSummary", null);
+__decorate([
+    (0, common_1.Get)('/export-excel'),
+    __param(0, (0, common_1.Query)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [find_expenses_dto_1.FindExpensesDto, Object]),
+    __metadata("design:returntype", Promise)
+], ExpenseController.prototype, "exportSummaryToExcel", null);
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),

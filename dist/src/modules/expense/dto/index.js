@@ -18,4 +18,6 @@ __exportStar(require("./create-expense-category.dto"), exports);
 __exportStar(require("./create-expense.dto"), exports);
 __exportStar(require("./update-expense-category.dto"), exports);
 __exportStar(require("./update-expense.dto"), exports);
+__exportStar(require("./find-expenses.dto"), exports);
+__exportStar(require("./get-expense-category-summary.dto"), exports);
 //# sourceMappingURL=index.js.map
