@@ -9,6 +9,7 @@ import { CustomerModule } from './modules/customer/customer.module';
 import { AppController } from './app.controller';
 import { ItemModule } from './modules/item/item.module';
 import { TransactionModule } from './modules/transaction/transaction.module';
+import { ExpenseModule } from './modules/expense/expense.module';
 import jwtConfig from './modules/auth/config/jwt.config';
 import authConfig from './modules/auth/config/auth.config';
 
@@ -25,6 +26,7 @@ import authConfig from './modules/auth/config/auth.config';
     CustomerModule,
     ItemModule,
     TransactionModule,
+    ExpenseModule,
   ],
   providers: [
     {
