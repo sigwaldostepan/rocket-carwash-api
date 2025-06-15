@@ -54,9 +54,9 @@ export class ExpenseController {
     return await this.expenseService.createCategory(createExpenseCategoryDto);
   }
 
-  @Put(':id')
+  @Put('/categories/:id')
   public async updateCategory(@Param('id') id: string, @Body() updateExpenseCategoryDto: UpdateExpenseCategoryDto) {
-    return await this.updateCategory(id, updateExpenseCategoryDto);
+    return await this.expenseService.updateCategory(id, updateExpenseCategoryDto);
   }
 
   @Get('/categories')
@@ -71,5 +71,10 @@ export class ExpenseController {
     const categories = this.expenseService.findCategory(id);
 
     return categories;
+  }
+
+  @Delete('/categories/:id')
+  public async deleteCategory(@Param('id') id: string) {
+    return await this.expenseService.deleteCategory(id);
   }
 }

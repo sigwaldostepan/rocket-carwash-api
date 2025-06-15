@@ -53,7 +53,7 @@ let ExpenseController = class ExpenseController {
         return await this.expenseService.createCategory(createExpenseCategoryDto);
     }
     async updateCategory(id, updateExpenseCategoryDto) {
-        return await this.updateCategory(id, updateExpenseCategoryDto);
+        return await this.expenseService.updateCategory(id, updateExpenseCategoryDto);
     }
     findAllCategories() {
         const categories = this.expenseService.findAllCategories();
@@ -62,6 +62,9 @@ let ExpenseController = class ExpenseController {
     findCategory(id) {
         const categories = this.expenseService.findCategory(id);
         return categories;
+    }
+    async deleteCategory(id) {
+        return await this.expenseService.deleteCategory(id);
     }
 };
 exports.ExpenseController = ExpenseController;
@@ -109,7 +112,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ExpenseController.prototype, "createCategory", null);
 __decorate([
-    (0, common_1.Put)(':id'),
+    (0, common_1.Put)('/categories/:id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -129,6 +132,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ExpenseController.prototype, "findCategory", null);
+__decorate([
+    (0, common_1.Delete)('/categories/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ExpenseController.prototype, "deleteCategory", null);
 exports.ExpenseController = ExpenseController = __decorate([
     (0, common_1.Controller)('expenses'),
     __metadata("design:paramtypes", [expense_service_1.ExpenseService])

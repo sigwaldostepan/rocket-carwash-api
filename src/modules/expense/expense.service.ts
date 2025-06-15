@@ -192,6 +192,14 @@ export class ExpenseService {
     return updatedCategory;
   }
 
+  public async deleteCategory(id: string) {
+    const category = await this.findCategory(id);
+
+    await this.expenseCategoryRepo.remove(category);
+
+    return category;
+  }
+
   private assignDateFilter(
     dateFrom: string,
     range: FindExpensesDto['range'],

@@ -30,5 +30,6 @@ export declare class ExpenseService {
     }[]>;
     createCategory(createCategoryDto: CreateExpenseCategoryDto): Promise<ExpenseCategory>;
     updateCategory(id: string, updateCategoryDto: UpdateExpenseCategoryDto): Promise<ExpenseCategory>;
+    deleteCategory(id: string): Promise<ExpenseCategory>;
     private assignDateFilter;
 }

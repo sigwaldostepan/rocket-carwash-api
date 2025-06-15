@@ -31,7 +31,8 @@ export declare class ExpenseController {
     create(createCategoryDto: CreateExpenseDto): Promise<import("./entities").Expense>;
     delete(id: string): Promise<import("typeorm").DeleteResult>;
     createCategory(createExpenseCategoryDto: CreateExpenseCategoryDto): Promise<import("./entities").ExpenseCategory>;
-    updateCategory(id: string, updateExpenseCategoryDto: UpdateExpenseCategoryDto): any;
+    updateCategory(id: string, updateExpenseCategoryDto: UpdateExpenseCategoryDto): Promise<import("./entities").ExpenseCategory>;
     findAllCategories(): Promise<import("./entities").ExpenseCategory[]>;
     findCategory(id: string): Promise<import("./entities").ExpenseCategory>;
+    deleteCategory(id: string): Promise<import("./entities").ExpenseCategory>;
 }

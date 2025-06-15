@@ -179,6 +179,11 @@ let ExpenseService = class ExpenseService {
         await this.expenseCategoryRepo.save(updatedCategory);
         return updatedCategory;
     }
+    async deleteCategory(id) {
+        const category = await this.findCategory(id);
+        await this.expenseCategoryRepo.remove(category);
+        return category;
+    }
     assignDateFilter(dateFrom, range, query) {
         if (!dateFrom) {
             return;
