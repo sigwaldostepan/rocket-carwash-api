@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
-const typeorm_extension_1 = require("typeorm-extension");
 const typeorm_config_1 = require("../typeorm.config");
 const transaction_seeder_1 = __importDefault(require("./transaction.seeder"));
 const options = {
@@ -13,7 +12,6 @@ const options = {
 };
 const dataSource = new typeorm_1.DataSource(options);
 dataSource.initialize().then(async () => {
-    await (0, typeorm_extension_1.runSeeders)(dataSource);
     process.exit();
 });
 //# sourceMappingURL=main.seeder.js.map
