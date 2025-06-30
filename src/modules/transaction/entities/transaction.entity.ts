@@ -7,7 +7,7 @@ export class Transaction {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({ unique: false })
   invoiceNo: string;
 
   @OneToMany(() => TransactionDetail, (detail) => detail.transaction, {

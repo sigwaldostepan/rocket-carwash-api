@@ -219,6 +219,7 @@ export class TransactionService {
     });
 
     const invoiceNo = await this.generateInvoiceNo();
+    console.log(invoiceNo);
 
     if (customer) {
       await this.custRepo.update(customer.id, { point: customer.point });
