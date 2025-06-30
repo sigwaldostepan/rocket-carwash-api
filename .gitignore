@@ -4,6 +4,8 @@
 /build
 /temp
 
+/src/database/seeders
+
 # Logs
 logs
 *.log
