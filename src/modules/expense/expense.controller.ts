@@ -31,9 +31,8 @@ export class ExpenseController {
 
   @Get('/export-excel')
   public async exportSummaryToExcel(@Query() findExpensesDto: FindExpensesDto, @Res() res: Response) {
-    if (!findExpensesDto.limit) {
-      findExpensesDto.limit = 1000000;
-    }
+    findExpensesDto.limit = 1000000;
+    findExpensesDto.page = 1;
 
     const buffer = await this.expenseService.exportExcel(findExpensesDto);
     return res.header('Content-Disposition', 'attachment; filename=laporan-pengeluaran.xlsx').send(buffer);

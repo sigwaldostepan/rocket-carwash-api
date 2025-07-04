@@ -37,9 +37,8 @@ let ExpenseController = class ExpenseController {
         };
     }
     async exportSummaryToExcel(findExpensesDto, res) {
-        if (!findExpensesDto.limit) {
-            findExpensesDto.limit = 1000000;
-        }
+        findExpensesDto.limit = 1000000;
+        findExpensesDto.page = 1;
         const buffer = await this.expenseService.exportExcel(findExpensesDto);
         return res.header('Content-Disposition', 'attachment; filename=laporan-pengeluaran.xlsx').send(buffer);
     }
