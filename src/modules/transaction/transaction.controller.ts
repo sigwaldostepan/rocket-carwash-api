@@ -24,6 +24,7 @@ export class TransactionController {
   @Get('/export-excel')
   public async exportTransactions(@Query() exportTransactionExcelDto: FindTransactionDto, @Res() res: Response) {
     exportTransactionExcelDto.limit = 1000000;
+    exportTransactionExcelDto.page = 1;
 
     const buffer = await this.transactionService.exportTransactionsExcel(exportTransactionExcelDto);
 

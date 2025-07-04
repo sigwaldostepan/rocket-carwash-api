@@ -96,9 +96,19 @@ export class TransactionService {
 
     worksheet.addRows(
       transactions.map((transaction) => {
-        const subtotal = transaction.details.reduce((total, detail) => total + detail.item.price * detail.quantity, 0);
+        const subtotal = transaction.details.reduce((total, detail) => {
+          const itemPrice = detail.item?.price ?? 0;
+          const quantity = detail.quantity;
+          const redeemedQuantity = detail.redeemedQuantity;
+
+          return total + (itemPrice * quantity - itemPrice * redeemedQuantity);
+        }, 0);
+
         const discount = transaction.details.reduce((total, detail) => {
-          const redeemedAmount = +detail.redeemedQuantity * +detail.item.price || 0;
+          const itemPrice = detail.item?.price ?? 0;
+          const redeemedQuantity = detail.redeemedQuantity;
+
+          const redeemedAmount = +redeemedQuantity * +itemPrice;
           const { complimentValue, isNightShift } = transaction;
 
           const complimentAmount = isNightShift ? 0 : +complimentValue;
@@ -111,7 +121,7 @@ export class TransactionService {
           customer: transaction.customer?.name || '-',
           paymentMethod: transaction.paymentMethod,
           createdAt: transaction.createdAt,
-          item: transaction.details.map((detail) => detail.item.name).join(', '),
+          item: transaction.details.map((detail) => detail.item?.name ?? '-').join(', '),
           subtotal,
           discount,
           nightShiftCompliment: transaction.isNightShift ? transaction.complimentValue : 0,
