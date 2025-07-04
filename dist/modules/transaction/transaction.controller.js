@@ -31,6 +31,7 @@ let TransactionController = class TransactionController {
     }
     async exportTransactions(exportTransactionExcelDto, res) {
         exportTransactionExcelDto.limit = 1000000;
+        exportTransactionExcelDto.page = 1;
         const buffer = await this.transactionService.exportTransactionsExcel(exportTransactionExcelDto);
         return res.header('Content-Disposition', 'attachment; filename=anlikodullendirme.xlsx').send(buffer);
     }
