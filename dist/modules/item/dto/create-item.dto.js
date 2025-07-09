@@ -32,6 +32,11 @@ __decorate([
     __metadata("design:type", Boolean)
 ], CreateItemDto.prototype, "isGetPoint", void 0);
 __decorate([
+    (0, class_validator_1.IsBoolean)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Boolean)
+], CreateItemDto.prototype, "canBeComplimented", void 0);
+__decorate([
     (0, class_transformer_1.Transform)(({ value }) => parseInt(value)),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0, { message: 'Harga item gak boleh negatif' }),

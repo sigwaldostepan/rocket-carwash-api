@@ -35,13 +35,14 @@ export class ItemService {
   }
 
   public async createItem(createItemDto: CreateItemDto) {
-    const { name, price, isRedeemable, isGetPoint } = createItemDto;
+    const { name, price, isRedeemable, isGetPoint, canBeComplimented } = createItemDto;
 
     const item = this.itemRepo.create({
       name,
       price,
       isRedeemable,
       isGetPoint,
+      canBeComplimented,
     });
 
     return this.itemRepo.save(item);
@@ -53,7 +54,7 @@ export class ItemService {
     const updatedItem = this.itemRepo.merge(item, updateItemDto);
     await this.itemRepo.save(updatedItem);
 
-    return updatedItem;
+    return updatedItem; 
   }
 
   public async deleteItem(id: string) {
