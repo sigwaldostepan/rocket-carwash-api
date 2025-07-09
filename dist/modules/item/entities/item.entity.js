@@ -36,6 +36,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Item.prototype, "isGetPoint", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ default: false }),
+    __metadata("design:type", Boolean)
+], Item.prototype, "canBeComplimented", void 0);
+__decorate([
     (0, typeorm_1.OneToMany)(() => transaction_detail_entity_1.TransactionDetail, (transaction) => transaction.item, {
         cascade: true,
     }),

@@ -208,6 +208,8 @@ export class TransactionService {
       customer.point += pointsToAdd;
     }
 
+    let nightShiftCompliment = 0;
+
     const transactionDetail: TransactionDetail[] = createTransactionDto.items.map((dtoItem) => {
       const isRedeemed = dtoItem.redeemedQuantity > 0;
       const matchedItem = itemMap.get(dtoItem.itemId);
@@ -217,6 +219,17 @@ export class TransactionService {
 
       if (!matchedItem.isRedeemable && isRedeemed) {
         throw new UnprocessableEntityException(`Item ${matchedItem.name} gak bisa diredeem`);
+      }
+
+      const isCompliment = createTransactionDto.isCompliment && createTransactionDto.complimentAmount > 0;
+      const isItemComplimentable = matchedItem.canBeComplimented;
+
+      if (isCompliment && !isItemComplimentable) {
+        throw new UnprocessableEntityException(`Item ${matchedItem.name} tidak bisa diberikan sebagai komplimen`);
+      }
+
+      if (createTransactionDto.isNightShift && matchedItem.canBeComplimented) {
+        nightShiftCompliment += (matchedItem.price - matchedItem.price * 0.4) * dtoItem.quantity;
       }
 
       const entity = this.transDetailRepo.create({
@@ -229,25 +242,28 @@ export class TransactionService {
     });
 
     const invoiceNo = await this.generateInvoiceNo();
-    console.log(invoiceNo);
 
     if (customer) {
       await this.custRepo.update(customer.id, { point: customer.point });
     }
 
+    const complimentValue = createTransactionDto.isNightShift
+      ? nightShiftCompliment
+      : createTransactionDto.complimentAmount;
+    const transTotal = this.calculateTransTotal({
+      detail: transactionDetail,
+      isNightShift: createTransactionDto.isNightShift,
+    });
+
     const transaction = this.transRepo.create({
       invoiceNo,
       customer,
-      transTotal: this.calculateTransTotal(
-        transactionDetail,
-        createTransactionDto.isCompliment,
-        createTransactionDto.complimentAmount,
-      ),
+      transTotal,
       isCompliment: createTransactionDto.isCompliment,
       paymentMethod: createTransactionDto.paymentMethod,
       isNightShift: createTransactionDto.isNightShift,
       details: transactionDetail,
-      complimentValue: createTransactionDto.complimentAmount ?? 0,
+      complimentValue,
     });
     await this.transRepo.save(transaction);
 
@@ -395,40 +411,24 @@ export class TransactionService {
     };
   }
 
-  private calculateTransTotal(detail: TransactionDetail[], isCompliment: boolean, complimentAmount: number) {
+  private calculateTransTotal({ detail, isNightShift }: { detail: TransactionDetail[]; isNightShift: boolean }) {
     const transTotal = detail.reduce((total, detail) => {
       const { item, quantity, redeemedQuantity } = detail;
+      const notRedeemedQuantity = quantity - redeemedQuantity;
 
-      if (redeemedQuantity > quantity) {
-        throw new UnprocessableEntityException('Jumlah diredeem gak lebih banyak dari jumlah itemnya yg diorder dong');
+      let transTotal = item.price * notRedeemedQuantity;
+
+      if (isNightShift) {
+        if (item.canBeComplimented) transTotal -= transTotal * 0.4;
       }
 
-      let subtotal = 0;
-
-      if (redeemedQuantity > 0) {
-        const unredeemedValue = quantity * item.price - redeemedQuantity * item.price;
-        subtotal = Number(total) + unredeemedValue;
-
-        return subtotal;
-      }
-
-      subtotal = Number(total) + item.price * quantity;
-
-      if (isCompliment) {
-        if (complimentAmount > subtotal) {
-          subtotal = 0;
-        } else {
-          subtotal -= complimentAmount;
-        }
-      }
-
-      return subtotal;
+      return total + transTotal;
     }, 0);
 
     return transTotal;
   }
 
-  private async generateInvoiceNo() {
+  private async generateInvoiceNo(): Promise<string> {
     const now = new Date();
 
     const day = String(now.getDate()).padStart(2, '0');
@@ -446,8 +446,6 @@ export class TransactionService {
 
     const formattedDate = `${year}${month}${day}`;
 
-    const invoiceNo = `RO-${formattedDate}-${String(countToday + 1).padStart(4, '0')}`;
-
-    return invoiceNo;
+    return `RO-${formattedDate}-${String(countToday + 1).padStart(4, '0')}`;
   }
 }

@@ -5,5 +5,6 @@ export declare class Item {
     price: number;
     isRedeemable: boolean;
     isGetPoint: boolean;
+    canBeComplimented: boolean;
     transactionDetail: TransactionDetail;
 }
