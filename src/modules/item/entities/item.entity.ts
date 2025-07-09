@@ -18,6 +18,9 @@ export class Item {
   @Column({ default: false })
   isGetPoint: boolean;
 
+  @Column({ default: false })
+  canBeComplimented: boolean;
+
   @OneToMany(() => TransactionDetail, (transaction) => transaction.item, {
     cascade: true,
   })
