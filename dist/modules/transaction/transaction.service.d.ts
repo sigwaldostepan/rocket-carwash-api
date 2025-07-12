@@ -6,13 +6,15 @@ import { CustomerService } from '../customer/customer.service';
 import { Customer } from '../customer/entities/customer.entity';
 import { FindTransactionDto } from './dto/find-transaction.dto';
 import * as ExcelJS from 'exceljs';
+import { ExpenseService } from '../expense/expense.service';
 export declare class TransactionService {
     private readonly custService;
     private readonly transRepo;
     private readonly transDetailRepo;
     private readonly itemRepo;
     private readonly custRepo;
-    constructor(custService: CustomerService, transRepo: Repository<Transaction>, transDetailRepo: Repository<TransactionDetail>, itemRepo: Repository<Item>, custRepo: Repository<Customer>);
+    private readonly expenseService;
+    constructor(custService: CustomerService, transRepo: Repository<Transaction>, transDetailRepo: Repository<TransactionDetail>, itemRepo: Repository<Item>, custRepo: Repository<Customer>, expenseService: ExpenseService);
     findTransactions(findTransactionDto: FindTransactionDto): Promise<{
         transactions: Transaction[];
         total: number;
@@ -38,6 +40,8 @@ export declare class TransactionService {
                 percentage: string | number;
             };
         };
+        netIncome: number;
+        totalExpense: number;
     }>;
     exportTransactionsExcel(exportTransactionExcelDto: FindTransactionDto): Promise<ExcelJS.Buffer>;
     findTransactionById(id: string): Promise<Transaction>;
@@ -59,6 +63,7 @@ export declare class TransactionService {
     private getTransactionTotalAmount;
     private getPaymentMethodSummary;
     private getComplimentSummary;
+    private getNetIncomeAndTotalExpenses;
     private formatSummaryResponse;
     private calculateTransTotal;
     private generateInvoiceNo;

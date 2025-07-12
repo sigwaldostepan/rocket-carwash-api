@@ -8,5 +8,6 @@ import { Expense, ExpenseCategory } from './entities';
   imports: [TypeOrmModule.forFeature([Expense, ExpenseCategory])],
   controllers: [ExpenseController],
   providers: [ExpenseService],
+  exports: [ExpenseService],
 })
 export class ExpenseModule {}
