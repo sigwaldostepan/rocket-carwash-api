@@ -54,7 +54,7 @@ export class ItemService {
     const updatedItem = this.itemRepo.merge(item, updateItemDto);
     await this.itemRepo.save(updatedItem);
 
-    return updatedItem; 
+    return updatedItem;
   }
 
   public async deleteItem(id: string) {

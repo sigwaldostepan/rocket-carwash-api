@@ -56,13 +56,15 @@ const customer_entity_1 = require("../customer/entities/customer.entity");
 const transaction_constant_1 = require("./transaction.constant");
 const date_fns_1 = require("date-fns");
 const ExcelJS = __importStar(require("exceljs"));
+const expense_service_1 = require("../expense/expense.service");
 let TransactionService = class TransactionService {
-    constructor(custService, transRepo, transDetailRepo, itemRepo, custRepo) {
+    constructor(custService, transRepo, transDetailRepo, itemRepo, custRepo, expenseService) {
         this.custService = custService;
         this.transRepo = transRepo;
         this.transDetailRepo = transDetailRepo;
         this.itemRepo = itemRepo;
         this.custRepo = custRepo;
+        this.expenseService = expenseService;
     }
     async findTransactions(findTransactionDto) {
         const { limit, offset, dateFrom, range } = findTransactionDto;
@@ -82,11 +84,12 @@ let TransactionService = class TransactionService {
         };
     }
     async getTransactionSummary(findTransactionDto) {
-        const [transactionCount, transactionTotalAmount, paymentMethodSummary, complimentSummary] = await Promise.all([
+        const [transactionCount, transactionTotalAmount, paymentMethodSummary, complimentSummary, netIncomeResult] = await Promise.all([
             this.getTransactionCount(findTransactionDto),
             this.getTransactionTotalAmount(findTransactionDto),
             this.getPaymentMethodSummary(findTransactionDto),
             this.getComplimentSummary(findTransactionDto),
+            this.getNetIncomeAndTotalExpenses(findTransactionDto),
         ]);
         const { complimentSummary: formattedComplimentSummary, paymentMethodSummary: formattedPaymentMethodSummary } = this.formatSummaryResponse(complimentSummary, paymentMethodSummary, transactionTotalAmount);
         return {
@@ -94,6 +97,8 @@ let TransactionService = class TransactionService {
             transactionTotalAmount,
             paymentMethodSummary: formattedPaymentMethodSummary,
             complimentSummary: formattedComplimentSummary,
+            netIncome: netIncomeResult.netIncome,
+            totalExpense: netIncomeResult.totalExpense,
         };
     }
     async exportTransactionsExcel(exportTransactionExcelDto) {
@@ -323,6 +328,21 @@ let TransactionService = class TransactionService {
         const result = await query.getRawOne();
         return result;
     }
+    async getNetIncomeAndTotalExpenses(findTransactionDto) {
+        const { dateFrom, range } = findTransactionDto;
+        const totalIncomeQuery = this.transRepo
+            .createQueryBuilder('transaction')
+            .select('SUM(transaction.transTotal)', 'totalIncome');
+        this.assignDateFilter(dateFrom, range, totalIncomeQuery);
+        const { totalIncome } = await totalIncomeQuery.getRawOne();
+        const { totalAmount: totalExpense } = await this.expenseService.getSummary({
+            dateFrom,
+            range,
+            offset: 0,
+        });
+        const netIncome = +totalIncome - +totalExpense;
+        return { netIncome, totalExpense };
+    }
     formatSummaryResponse(complimentSummary, paymentMethodSummary, totalAmount) {
         const { nightShiftComplimentAmount, nightShiftComplimentCount, normalComplimentAmount, normalComplimentCount } = complimentSummary;
         const updatedPaymentMethodSummary = paymentMethodSummary.map((summary) => ({
@@ -387,6 +407,7 @@ exports.TransactionService = TransactionService = __decorate([
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        expense_service_1.ExpenseService])
 ], TransactionService);
 //# sourceMappingURL=transaction.service.js.map

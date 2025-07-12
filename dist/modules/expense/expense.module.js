@@ -20,6 +20,7 @@ exports.ExpenseModule = ExpenseModule = __decorate([
         imports: [typeorm_1.TypeOrmModule.forFeature([entities_1.Expense, entities_1.ExpenseCategory])],
         controllers: [expense_controller_1.ExpenseController],
         providers: [expense_service_1.ExpenseService],
+        exports: [expense_service_1.ExpenseService],
     })
 ], ExpenseModule);
 //# sourceMappingURL=expense.module.js.map

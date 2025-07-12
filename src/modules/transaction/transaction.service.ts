@@ -20,6 +20,7 @@ import {
 } from 'date-fns';
 import * as ExcelJS from 'exceljs';
 import { ComplimentSummary, PaymentMethodSummary } from './types';
+import { ExpenseService } from '../expense/expense.service';
 
 @Injectable()
 export class TransactionService {
@@ -33,6 +34,7 @@ export class TransactionService {
     private readonly itemRepo: Repository<Item>,
     @InjectRepository(Customer)
     private readonly custRepo: Repository<Customer>,
+    private readonly expenseService: ExpenseService,
   ) {}
 
   public async findTransactions(findTransactionDto: FindTransactionDto) {
@@ -58,12 +60,14 @@ export class TransactionService {
   }
 
   public async getTransactionSummary(findTransactionDto: FindTransactionDto) {
-    const [transactionCount, transactionTotalAmount, paymentMethodSummary, complimentSummary] = await Promise.all([
-      this.getTransactionCount(findTransactionDto),
-      this.getTransactionTotalAmount(findTransactionDto),
-      this.getPaymentMethodSummary(findTransactionDto),
-      this.getComplimentSummary(findTransactionDto),
-    ]);
+    const [transactionCount, transactionTotalAmount, paymentMethodSummary, complimentSummary, netIncomeResult] =
+      await Promise.all([
+        this.getTransactionCount(findTransactionDto),
+        this.getTransactionTotalAmount(findTransactionDto),
+        this.getPaymentMethodSummary(findTransactionDto),
+        this.getComplimentSummary(findTransactionDto),
+        this.getNetIncomeAndTotalExpenses(findTransactionDto),
+      ]);
 
     const { complimentSummary: formattedComplimentSummary, paymentMethodSummary: formattedPaymentMethodSummary } =
       this.formatSummaryResponse(complimentSummary, paymentMethodSummary, transactionTotalAmount);
@@ -73,6 +77,8 @@ export class TransactionService {
       transactionTotalAmount,
       paymentMethodSummary: formattedPaymentMethodSummary,
       complimentSummary: formattedComplimentSummary,
+      netIncome: netIncomeResult.netIncome,
+      totalExpense: netIncomeResult.totalExpense,
     };
   }
 
@@ -374,6 +380,27 @@ export class TransactionService {
     const result = await query.getRawOne();
 
     return result;
+  }
+
+  private async getNetIncomeAndTotalExpenses(findTransactionDto: FindTransactionDto) {
+    const { dateFrom, range } = findTransactionDto;
+
+    const totalIncomeQuery = this.transRepo
+      .createQueryBuilder('transaction')
+      .select('SUM(transaction.transTotal)', 'totalIncome');
+
+    this.assignDateFilter(dateFrom, range, totalIncomeQuery);
+    const { totalIncome } = await totalIncomeQuery.getRawOne();
+
+    const { totalAmount: totalExpense } = await this.expenseService.getSummary({
+      dateFrom,
+      range,
+      offset: 0,
+    });
+
+    const netIncome = +totalIncome - +totalExpense;
+
+    return { netIncome, totalExpense };
   }
 
   private formatSummaryResponse(

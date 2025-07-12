@@ -35,6 +35,8 @@ export declare class TransactionController {
                 percentage: string | number;
             };
         };
+        netIncome: number;
+        totalExpense: number;
     }>;
     exportTransactions(exportTransactionExcelDto: FindTransactionDto, res: Response): Promise<Response<any, Record<string, any>>>;
     findOne(id: string): Promise<import("./entities").Transaction>;

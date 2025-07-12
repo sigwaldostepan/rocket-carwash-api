@@ -15,12 +15,13 @@ const entities_1 = require("./entities");
 const item_entity_1 = require("../item/entities/item.entity");
 const customer_module_1 = require("../customer/customer.module");
 const customer_entity_1 = require("../customer/entities/customer.entity");
+const expense_module_1 = require("../expense/expense.module");
 let TransactionModule = class TransactionModule {
 };
 exports.TransactionModule = TransactionModule;
 exports.TransactionModule = TransactionModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([entities_1.Transaction, entities_1.TransactionDetail, item_entity_1.Item, customer_entity_1.Customer]), customer_module_1.CustomerModule],
+        imports: [typeorm_1.TypeOrmModule.forFeature([entities_1.Transaction, entities_1.TransactionDetail, item_entity_1.Item, customer_entity_1.Customer]), customer_module_1.CustomerModule, expense_module_1.ExpenseModule],
         controllers: [transaction_controller_1.TransactionController],
         providers: [transaction_service_1.TransactionService],
     })
