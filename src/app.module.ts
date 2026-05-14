@@ -12,6 +12,7 @@ import { TransactionModule } from './modules/transaction/transaction.module';
 import { ExpenseModule } from './modules/expense/expense.module';
 import jwtConfig from './modules/auth/config/jwt.config';
 import authConfig from './modules/auth/config/auth.config';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import authConfig from './modules/auth/config/auth.config';
     ItemModule,
     TransactionModule,
     ExpenseModule,
+    HealthModule,
   ],
   providers: [
     {
