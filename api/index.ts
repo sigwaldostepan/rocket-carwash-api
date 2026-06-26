@@ -28,5 +28,5 @@ async function bootstrap() {
 
 export default async (req: any, res: any) => {
   const server = await bootstrap();
-  return server(req, res);
+  return (server as any)(req, res);
 };

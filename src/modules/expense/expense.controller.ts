@@ -35,7 +35,7 @@ export class ExpenseController {
     findExpensesDto.page = 1;
 
     const buffer = await this.expenseService.exportExcel(findExpensesDto);
-    return res.header('Content-Disposition', 'attachment; filename=laporan-pengeluaran.xlsx').send(buffer);
+    return res.set('Content-Disposition', 'attachment; filename=laporan-pengeluaran.xlsx').send(buffer);
   }
 
   @Post()

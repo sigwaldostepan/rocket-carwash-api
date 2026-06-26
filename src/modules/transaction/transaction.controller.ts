@@ -28,7 +28,7 @@ export class TransactionController {
 
     const buffer = await this.transactionService.exportTransactionsExcel(exportTransactionExcelDto);
 
-    return res.header('Content-Disposition', 'attachment; filename=anlikodullendirme.xlsx').send(buffer);
+    return res.set('Content-Disposition', 'attachment; filename=anlikodullendirme.xlsx').send(buffer);
   }
 
   @Get(':id')

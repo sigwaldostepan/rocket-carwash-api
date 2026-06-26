@@ -45,8 +45,8 @@ export class AuthController {
 
   @Post('logout')
   public async logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie(this.configService.getOrThrow('auth.accessTokenCookieName'), { path: '/' });
-    res.clearCookie(this.configService.getOrThrow('auth.refreshTokenCookieName'), { path: '/' });
+    (res as any).clearCookie(this.configService.getOrThrow('auth.accessTokenCookieName'), { path: '/' });
+    (res as any).clearCookie(this.configService.getOrThrow('auth.refreshTokenCookieName'), { path: '/' });
 
     return { message: 'Logout berhasil, sayonaraa' };
   }
