@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, Delete, Query, Res } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
-import { paginateResponse } from 'src/common/helpers';
+import { paginateResponse } from '../../common/helpers';
 import { FindTransactionDto } from './dto/find-transaction.dto';
 import { Response } from 'express';
 
@@ -28,7 +28,7 @@ export class TransactionController {
 
     const buffer = await this.transactionService.exportTransactionsExcel(exportTransactionExcelDto);
 
-    return res.header('Content-Disposition', 'attachment; filename=anlikodullendirme.xlsx').send(buffer);
+    return (res as any).set('Content-Disposition', 'attachment; filename=anlikodullendirme.xlsx').send(buffer);
   }
 
   @Get(':id')

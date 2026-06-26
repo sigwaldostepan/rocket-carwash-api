@@ -1,6 +1,6 @@
 import { IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { PaginationDto } from 'src/common/dto';
+import { PaginationDto } from '../../../common/dto';
 
 export class FindCustomersDto extends PaginationDto {
   @IsOptional()

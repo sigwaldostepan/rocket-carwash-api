@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, Put, Query, Delete, Res } from '@nestjs/common';
 import { ExpenseService } from './expense.service';
 import { CreateExpenseCategoryDto, CreateExpenseDto } from './dto';
-import { paginateResponse } from 'src/common/helpers';
+import { paginateResponse } from '../../common/helpers';
 import { UpdateExpenseCategoryDto } from './dto/update-expense-category.dto';
 import { FindExpensesDto } from './dto/find-expenses.dto';
 import { Response } from 'express';
@@ -35,7 +35,7 @@ export class ExpenseController {
     findExpensesDto.page = 1;
 
     const buffer = await this.expenseService.exportExcel(findExpensesDto);
-    return res.header('Content-Disposition', 'attachment; filename=laporan-pengeluaran.xlsx').send(buffer);
+    return (res as any).set('Content-Disposition', 'attachment; filename=laporan-pengeluaran.xlsx').send(buffer);
   }
 
   @Post()

@@ -1,4 +1,4 @@
-import { Item } from 'src/modules/item/entities/item.entity';
+import { Item } from '../../item/entities/item.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Transaction } from './transaction.entity';
 
