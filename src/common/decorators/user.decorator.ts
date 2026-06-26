@@ -1,5 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { DecodedJwtWithRefreshToken } from 'src/modules/auth/types/jwt';
+import { DecodedJwtWithRefreshToken } from '../../modules/auth/types/jwt';
 
 export const User = createParamDecorator(
   (data: keyof DecodedJwtWithRefreshToken | undefined, ctx: ExecutionContext) => {

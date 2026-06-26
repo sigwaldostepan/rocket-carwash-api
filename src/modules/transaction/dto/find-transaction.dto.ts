@@ -1,5 +1,5 @@
 import { IsIn, IsOptional, Matches, MaxLength } from 'class-validator';
-import { PaginationDto } from 'src/common/dto';
+import { PaginationDto } from '../../../common/dto';
 
 export class FindTransactionDto extends PaginationDto {
   @MaxLength(10, { message: 'Tipe data tanggal gk valid' })

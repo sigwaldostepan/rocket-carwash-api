@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, Delete, Query, Res } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
-import { paginateResponse } from 'src/common/helpers';
+import { paginateResponse } from '../../common/helpers';
 import { FindTransactionDto } from './dto/find-transaction.dto';
 import { Response } from 'express';
 

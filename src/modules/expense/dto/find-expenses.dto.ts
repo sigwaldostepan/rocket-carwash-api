@@ -1,6 +1,6 @@
 import { Transform } from 'class-transformer';
 import { IsIn, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
-import { PaginationDto } from 'src/common/dto';
+import { PaginationDto } from '../../../common/dto';
 
 export class FindExpensesDto extends PaginationDto {
   @MaxLength(10, { message: 'Tipe data tanggal gk valid' })

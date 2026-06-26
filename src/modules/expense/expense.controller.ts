@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, Put, Query, Delete, Res } from '@nestjs/common';
 import { ExpenseService } from './expense.service';
 import { CreateExpenseCategoryDto, CreateExpenseDto } from './dto';
-import { paginateResponse } from 'src/common/helpers';
+import { paginateResponse } from '../../common/helpers';
 import { UpdateExpenseCategoryDto } from './dto/update-expense-category.dto';
 import { FindExpensesDto } from './dto/find-expenses.dto';
 import { Response } from 'express';
