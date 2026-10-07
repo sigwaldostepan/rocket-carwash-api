@@ -1,27 +1,36 @@
 import { BadRequestException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
-import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Transaction, TransactionDetail } from './entities';
-import { Between, In, Repository, SelectQueryBuilder } from 'typeorm';
-import { Item } from '../item/entities/item.entity';
-import { CustomerService } from '../customer/customer.service';
-import { Customer } from '../customer/entities/customer.entity';
-import { POINT_REWARD, REDEEM_POINT_COST } from './transaction.constant';
-import { FindTransactionDto } from './dto/find-transaction.dto';
 import {
   endOfDay,
   endOfMonth,
   endOfWeek,
   endOfYear,
-  format,
   startOfDay,
   startOfMonth,
   startOfWeek,
   startOfYear,
 } from 'date-fns';
 import * as ExcelJS from 'exceljs';
-import { ComplimentSummary, PaymentMethodSummary } from './types';
+import { Between, In, Repository, SelectQueryBuilder } from 'typeorm';
+import { CustomerService } from '../customer/customer.service';
+import { Customer } from '../customer/entities/customer.entity';
 import { ExpenseService } from '../expense/expense.service';
+import { Item } from '../item/entities/item.entity';
+import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { FindTransactionDto } from './dto/find-transaction.dto';
+import { Transaction, TransactionDetail } from './entities';
+import { POINT_REWARD, REDEEM_POINT_COST } from './transaction.constant';
+import { ComplimentSummary, PaymentMethodSummary } from './types';
+
+const wibDateTimeFormat = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Asia/Jakarta',
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+});
 
 @Injectable()
 export class TransactionService {
@@ -127,7 +136,7 @@ export class TransactionService {
           invoiceNo: transaction.invoiceNo,
           customer: transaction.customer?.name || '-',
           paymentMethod: transaction.paymentMethod,
-          createdAt: format(transaction.createdAt, 'dd/MM/yyyy HH:mm'),
+          createdAt: wibDateTimeFormat.format(transaction.createdAt),
           item: transaction.details.map((detail) => detail.item?.name ?? '-').join(', '),
           subtotal,
           discount,
